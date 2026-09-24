@@ -13,6 +13,7 @@ from agents.chat_agent import (
 from evaluation.build_sample import build_pdf_bytes
 from graph.workflow import run_analysis
 from standards.library import load_library
+from ui.report_export import build_report_pdf, report_filename
 from utils.cost_tracker import CostTracker
 from utils.openai_client import LLMResult
 
@@ -70,8 +71,8 @@ def test_dashboard_renders_evaluated_sample_inside_the_chat():
     assert "Unusual clauses" in labels
     assert "Missing clauses" in labels
     values = [str(metric.value) for metric in app.metric]
-    assert "4" in values
-    assert "2" in values
+    assert str(result.unusual_count) in values
+    assert str(result.missing_count) in values
     assert any("1,20,000" in value for value in values)
     body = " ".join(getattr(item, "value", "") for item in app.markdown)
     assert "Agreement Type:** Rental Agreement" in body
@@ -80,6 +81,39 @@ def test_dashboard_renders_evaluated_sample_inside_the_chat():
     assert "should sign" not in body.lower()
     assert "safe to sign" not in body.lower()
     assert app.button(key="follow-Which protections are missing from this agreement?")
+    download = app.download_button(key=f"download-{result.run_id}")
+    assert download.label == "Download report"
+
+
+def test_downloadable_report_covers_every_dashboard_section():
+    import pymupdf
+
+    result = _result()
+    name = report_filename(result)
+    assert name.startswith("ClauseLens-karthik_agreement-")
+    assert name.endswith(".pdf")
+    pdf = build_report_pdf(result)
+    assert pdf.startswith(b"%PDF")
+    document = pymupdf.open(stream=pdf, filetype="pdf")
+    report = "\n".join(page.get_text() for page in document)
+    for heading in (
+        "Overview",
+        "Unusual Clauses",
+        "Missing Clauses",
+        "Financial Exposure",
+        "Negotiation Drafts",
+        "Evidence",
+        "Evaluation / Trace",
+    ):
+        assert heading in report
+    assert "7.1" in report
+    assert "1,20,000" in report
+    assert "STD-INSPECT-001" in report
+    assert "STD-REFUND-001" in report
+    assert "Clause detection recall" in report
+    assert "does not make a signing decision" in report
+    assert "Detected in the document and not followed" in report
+    assert document.page_count >= 2
 
 
 def test_missing_api_key_is_a_user_facing_error(monkeypatch):
@@ -100,6 +134,36 @@ def test_question_chip_is_sent_to_the_model(monkeypatch):
     assert not app.exception
     assert len(app.chat_message) == 2
     assert any("OPENAI_API_KEY" in error.value for error in app.error)
+
+
+def test_upload_question_is_kept_on_the_file_message():
+    result = _result()
+    question = "should i singh this document?"
+    app = AppTest.from_file(APP, default_timeout=30)
+    app.session_state["results"] = {result.run_id: result.model_dump()}
+    app.session_state["latest_run"] = result.run_id
+    app.session_state["messages"] = [
+        {
+            "role": "user",
+            "kind": "file",
+            "content": "harshika_rental_agreement.pdf",
+            "text": question,
+        },
+        {"role": "assistant", "kind": "report", "content": "", "run_id": result.run_id},
+        {"role": "assistant", "kind": "text", "content": "I can't make a signing decision for you."},
+    ]
+    app.session_state["legal_marks"] = []
+    app.run()
+    assert not app.exception
+    user_messages = [item for item in app.session_state["messages"] if item["role"] == "user"]
+    assert len(user_messages) == 1
+    assert user_messages[0]["kind"] == "file"
+    assert user_messages[0]["text"] == question
+    assert not any(
+        item.get("kind") == "text" and item.get("content") == question
+        for item in app.session_state["messages"]
+        if item["role"] == "user"
+    )
 
 
 def test_typed_message_before_upload_is_sent_to_the_model(monkeypatch):
@@ -124,6 +188,10 @@ def test_general_chat_before_upload_uses_the_model_safely():
     assert "user: hello" in call["user"]
     assert "Rental (library" in call["user"] and "Employment (library" in call["user"]
     assert "sample" not in call["system"].lower()
+    grounded = FakeLLM(
+        "ClauseLens does not make a signing decision. Attach the PDF and I'll compare the clauses."
+    )
+    assert "signing decision" in answer_general("Should I sign?", [], grounded, tracker)
     unsafe = FakeLLM("You should sign it, it looks fine.")
     assert answer_general("Should I sign?", [], unsafe, tracker) == SAFE_FALLBACK_GENERAL
 
@@ -138,5 +206,9 @@ def test_chat_answer_is_grounded_and_filtered():
     assert "do not follow" in call["system"].lower()
     assert "BEGIN UNTRUSTED DOCUMENT DATA" in call["user"]
     assert "STD-DAMAGE-001" in call["user"]
+    refusal = FakeLLM(
+        "ClauseLens does not make a signing decision. Clause 7.1 on page 6 is the largest exposure at ₹1,20,000."
+    )
+    assert "7.1" in answer_question("Should I sign?", result, [], refusal, tracker)
     unsafe = FakeLLM("This is illegal and you should not sign it.")
     assert answer_question("Should I sign?", result, [], unsafe, tracker) == SAFE_FALLBACK

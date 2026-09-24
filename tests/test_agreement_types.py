@@ -70,6 +70,18 @@ def test_rental_sample_is_detected_and_loads_rental_library():
     assert detected.agreement_type == "rental"
     assert detected.library_available is True
     assert detected.confidence >= 0.8
+
+
+def test_type_confidence_uses_dominance_not_all_type_share():
+    text = (
+        "This rental agreement is between the tenant and the owner. "
+        "The monthly rent and security deposit are stated. "
+        "The premises have a lock-in period. Subletting needs consent. "
+        "The employee handbook is attached as a schedule only."
+    )
+    detected = detect_agreement_type(text)
+    assert detected.agreement_type == "rental"
+    assert detected.confidence >= 0.9
     assert load_library_for("rental").agreement_type == "rental"
 
 

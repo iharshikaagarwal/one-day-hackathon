@@ -272,8 +272,8 @@ def _evaluation(result: AnalysisRun) -> None:
     st.subheader("Evaluation dataset")
     if result.evaluation is None:
         st.caption(
-            "These metrics are computed only when the uploaded PDF is the ClauseLens evaluation agreement. "
-            "They are not shown as general accuracy. Upload evaluation/test_agreements/karthik_agreement.pdf to score this case."
+            "These metrics are computed when the filename matches a case in evaluation/expected_results.json "
+            "or the evaluation marker is in the PDF. They are not shown as general accuracy."
         )
     else:
         stats = result.evaluation

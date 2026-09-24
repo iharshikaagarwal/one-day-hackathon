@@ -19,18 +19,14 @@ _INJECTION_PATTERNS = [
 ]
 
 _BANNED_OUTPUT = [
-    re.compile(r"you should sign", re.I),
-    re.compile(r"you should not sign", re.I),
-    re.compile(r"you shouldn't sign", re.I),
-    re.compile(r"should sign", re.I),
-    re.compile(r"should not sign", re.I),
-    re.compile(r"do not sign", re.I),
-    re.compile(r"don't sign", re.I),
-    re.compile(r"safe to sign", re.I),
-    re.compile(r"unsafe to sign", re.I),
+    re.compile(r"(?<!whether )(?<!if )you should sign", re.I),
+    re.compile(r"(?<!whether )(?<!if )you should not sign", re.I),
+    re.compile(r"(?<!whether )(?<!if )you shouldn't sign", re.I),
     re.compile(r"recommend signing", re.I),
     re.compile(r"advise you to sign", re.I),
     re.compile(r"advise against signing", re.I),
+    re.compile(r"safe to sign", re.I),
+    re.compile(r"unsafe to sign", re.I),
     re.compile(r"\bthis is illegal\b", re.I),
     re.compile(r"\billegal clause\b", re.I),
     re.compile(r"\blegally invalid\b", re.I),
@@ -44,26 +40,52 @@ _BANNED_OUTPUT = [
     re.compile(r"\bor else\b", re.I),
     re.compile(r"\bwe will sue\b", re.I),
     re.compile(r"\bsee you in court\b", re.I),
+    re.compile(r"tenant's right", re.I),
+    re.compile(r"right to timely refund", re.I),
+    re.compile(r"\bunfair\b", re.I),
 ]
 
 
-def scan_injection(text: str) -> list[str]:
+def scan_injection(text: str, pages: list[tuple[int, str]] | None = None) -> list[str]:
+    if pages:
+        found: list[str] = []
+        seen: set[str] = set()
+        for page_number, page_text in pages:
+            for excerpt in _excerpts_from_text(page_text):
+                key = excerpt.lower()
+                if key in seen:
+                    continue
+                seen.add(key)
+                found.append(f"Page {page_number}: {excerpt}")
+        return found
+    return _excerpts_from_text(text)
+
+
+def _excerpts_from_text(text: str) -> list[str]:
+    compact = " ".join((text or "").split())
+    if not compact:
+        return []
+    spans: list[tuple[int, int]] = []
+    for pattern in _INJECTION_PATTERNS:
+        for match in pattern.finditer(compact):
+            start = compact.rfind(".", 0, match.start()) + 1
+            end = compact.find(".", match.end())
+            end = len(compact) if end < 0 else end + 1
+            spans.append((start, max(end, match.end())))
+    merged: list[tuple[int, int]] = []
+    for start, end in sorted(spans):
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
     excerpts: list[str] = []
-    for line in text.splitlines():
-        stripped = " ".join(line.split())
-        if not stripped:
-            continue
-        if any(pattern.search(stripped) for pattern in _INJECTION_PATTERNS):
-            excerpts.append(stripped[:240])
-    # Also catch a match that wraps across a short paragraph.
-    if not excerpts:
-        compact = " ".join(text.split())
-        for pattern in _INJECTION_PATTERNS:
-            match = pattern.search(compact)
-            if match:
-                start = max(0, match.start() - 40)
-                excerpts.append(compact[start : match.end() + 80][:240])
-                break
+    seen: set[str] = set()
+    for start, end in merged:
+        excerpt = compact[start:end].strip()[:240]
+        key = excerpt.lower()
+        if excerpt and key not in seen:
+            seen.add(key)
+            excerpts.append(excerpt)
     return excerpts
 
 

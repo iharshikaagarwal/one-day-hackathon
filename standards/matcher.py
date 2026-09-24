@@ -16,15 +16,19 @@ def find_unusual(
     library: StandardLibrary,
     patterns: PatternLibrary,
 ) -> list[ClauseComparison]:
-    findings: list[ClauseComparison] = []
+    generic_ids = set(library.generic_standard_ids)
+    skip_categories = set(library.generic_skip_categories)
+    by_clause: dict[str, list[ClauseComparison]] = {}
     for clause in clauses:
         for entry in library.entries:
+            if entry.standard_id in generic_ids and clause.category in skip_categories:
+                continue
             indicators = _matching_indicators(entry, clause.text)
             if not indicators:
                 continue
             missing = _missing_element_descriptions(entry, clause.text)
             pattern_notes = _pattern_notes(patterns, entry.standard_id, clause.text, absent=False)
-            findings.append(
+            by_clause.setdefault(clause.clause_number, []).append(
                 ClauseComparison(
                     comparison_id=f"{clause.clause_number}:{entry.standard_id}",
                     clause_number=clause.clause_number,
@@ -47,7 +51,11 @@ def find_unusual(
                     why_it_matters=entry.why_it_matters,
                 )
             )
-    return findings
+    chosen: list[ClauseComparison] = []
+    for items in by_clause.values():
+        specific = [item for item in items if item.standard_id not in generic_ids]
+        chosen.extend(specific or items[:1])
+    return chosen
 
 
 def find_missing(
@@ -100,7 +108,12 @@ def _searchable(text: str) -> str:
 
 def _matching_indicators(entry: StandardClause, text: str) -> list[str]:
     lowered = _searchable(text)
-    return [indicator for indicator in entry.contradiction_indicators if indicator.lower() in lowered]
+    hits = [indicator for indicator in entry.contradiction_indicators if indicator.lower() in lowered]
+    if not hits:
+        return []
+    if entry.presence_indicators and not _indicators_present(entry.presence_indicators, text):
+        return []
+    return hits
 
 
 def _indicators_present(indicators: list[str], text: str) -> bool:

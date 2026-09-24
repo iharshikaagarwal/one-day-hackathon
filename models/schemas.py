@@ -131,6 +131,8 @@ class StandardLibrary(BaseModel):
     disclaimer: str
     financial_terms: FinancialTermsConfig = Field(default_factory=FinancialTermsConfig)
     legal_review_categories: list[str] = Field(default_factory=list)
+    generic_standard_ids: list[str] = Field(default_factory=list)
+    generic_skip_categories: list[str] = Field(default_factory=list)
     heading_aliases: dict[str, str] = Field(default_factory=dict)
     category_keywords: list[CategoryKeywords] = Field(default_factory=list)
     entries: list[StandardClause]

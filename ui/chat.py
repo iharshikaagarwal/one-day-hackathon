@@ -6,6 +6,7 @@ import streamlit as st
 
 from models.schemas import AnalysisRun
 from ui.dashboard import render_dashboard
+from ui.report_export import build_report_pdf, report_filename
 from utils.format import format_inr
 
 BRAND_MARK = "⌁"
@@ -75,6 +76,16 @@ def render_message(message: dict, results: dict, latest_run: str | None) -> None
             result = AnalysisRun.model_validate(results[message["run_id"]])
             st.markdown(summary(result))
             if message["run_id"] == latest_run:
+                st.download_button(
+                    "Download report",
+                    data=lambda: build_report_pdf(result),
+                    file_name=report_filename(result),
+                    mime="application/pdf",
+                    icon=":material/picture_as_pdf:",
+                    key=f"download-{result.run_id}",
+                    on_click="ignore",
+                    help="Save the full dashboard as a human-readable PDF.",
+                )
                 with st.expander("Full report", icon=":material/dashboard:", expanded=True):
                     render_dashboard(result)
             else:

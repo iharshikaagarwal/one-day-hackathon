@@ -24,7 +24,6 @@ def detect_agreement_type(text: str) -> AgreementTypeDetection:
         scored.append((len(hits), item, hits))
     scored.sort(key=lambda row: -row[0])
     top_hits, top, matched = scored[0]
-    total = sum(row[0] for row in scored)
 
     if top_hits < config["minimum_signals"]:
         return AgreementTypeDetection(
@@ -39,9 +38,10 @@ def detect_agreement_type(text: str) -> AgreementTypeDetection:
             library_available=False,
         )
 
-    share = top_hits / total
+    runner_up_hits = scored[1][0] if len(scored) > 1 else 0
+    dominance = top_hits / max(top_hits + runner_up_hits, 1)
     coverage = min(1.0, top_hits / FULL_COVERAGE_SIGNALS)
-    confidence = round(min(MAX_CONFIDENCE, share * coverage), 2)
+    confidence = round(min(MAX_CONFIDENCE, 0.4 * dominance + 0.6 * coverage), 2)
     runner_up = scored[1]
     reasoning = (
         f"Matched {top_hits} {top['label'].lower()} signals: {', '.join(matched)}. "

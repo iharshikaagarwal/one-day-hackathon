@@ -21,6 +21,14 @@ from agents.common import started, state_library, trace_dict
 
 AGENT = "Evidence Validator"
 
+FINDING_TITLES = {
+    "STD-DAMAGE-001": "Undefined damage deduction",
+    "STD-CHARGES-001": "Additional charge or penalty",
+    "STD-MOVEIN-001": "Administrative charge",
+    "STD-MOVEOUT-001": "Key-return charge",
+    "STD-EARLYTERM-001": "Early-termination charge",
+}
+
 
 def run_validation(state: dict, tracker, library_version: str | None = None) -> dict:
     mark = started()
@@ -153,7 +161,7 @@ def _validate_unusual(comparison, exposure, negotiation, pages, context) -> list
     return reasons
 
 
-def _validate_missing(item: MissingClause, negotiation, document: AgreementDocument) -> list[str]:
+def _validate_missing(item: MissingClause, negotiation, document: Agreement) -> list[str]:
     reasons: list[str] = []
     if not item.standard_id or not item.standard_expectation:
         reasons.append(f"{item.title}: the standard reference is missing.")
@@ -202,7 +210,7 @@ def _unusual_finding(comparison, exposure, ranking, negotiation, library_version
         kind="unusual",
         rank=ranking.rank if ranking else None,
         clause_number=comparison.clause_number,
-        title=comparison.clause_title or comparison.standard_title,
+        title=FINDING_TITLES.get(comparison.standard_id) or comparison.standard_title or comparison.clause_title,
         category=comparison.category,
         page=comparison.page,
         agreement_text=comparison.agreement_text,
@@ -235,7 +243,7 @@ def _unusual_finding(comparison, exposure, ranking, negotiation, library_version
 
 def _missing_finding(item: MissingClause, negotiation, library_version: str, legal_categories: set[str]) -> Finding:
     reasons = _legal_reasons(item.category, None, legal_categories)
-    if "financial exposure cannot be reliably calculated" not in reasons:
+    if item.category in legal_categories and not reasons:
         reasons.append("the agreement does not state a figure for this absent topic")
     return Finding(
         finding_id=item.standard_id,
@@ -259,7 +267,7 @@ def _missing_finding(item: MissingClause, negotiation, library_version: str, leg
             difference=item.absence_evidence,
             library_version=library_version,
         ),
-        legal_review=True,
+        legal_review=bool(reasons),
         legal_review_reasons=reasons,
         impact_label="MISSING",
         pattern_notes=item.pattern_notes,

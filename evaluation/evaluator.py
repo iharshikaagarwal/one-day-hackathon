@@ -1,19 +1,58 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from models.schemas import EvaluationResult, Finding, ValidationSummary
 from utils.config import ROOT
 from evaluation.agreement_text import EVAL_MARKER
 
 
+def load_cases() -> list[dict]:
+    data = json.loads((ROOT / "evaluation" / "expected_results.json").read_text(encoding="utf-8"))
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict) and "cases" in data:
+        return list(data["cases"])
+    if isinstance(data, dict):
+        return [data]
+    return []
+
+
 def load_expected() -> dict:
-    return json.loads((ROOT / "evaluation" / "expected_results.json").read_text(encoding="utf-8"))
+    cases = load_cases()
+    for case in cases:
+        if case.get("marker") == EVAL_MARKER:
+            return case
+    if not cases:
+        raise FileNotFoundError("evaluation/expected_results.json has no cases")
+    return cases[0]
 
 
-def maybe_evaluate(full_text: str, findings: list[Finding], validation: ValidationSummary) -> EvaluationResult | None:
-    expected = load_expected()
-    if expected["marker"] not in full_text and EVAL_MARKER not in full_text:
+def lookup_expected(filename: str, full_text: str) -> dict | None:
+    name = Path(filename or "").name.lower()
+    cases = load_cases()
+    for case in cases:
+        aliases = [Path(item).name.lower() for item in case.get("filenames", [])]
+        if name and name in aliases:
+            return case
+    for case in cases:
+        marker = (case.get("marker") or "").strip()
+        if marker and marker in full_text:
+            return case
+    if EVAL_MARKER in full_text:
+        return load_expected()
+    return None
+
+
+def maybe_evaluate(
+    full_text: str,
+    findings: list[Finding],
+    validation: ValidationSummary,
+    filename: str = "",
+) -> EvaluationResult | None:
+    expected = lookup_expected(filename, full_text)
+    if expected is None:
         return None
     return score_findings(findings, validation, expected)
 
@@ -31,6 +70,7 @@ def score_findings(findings: list[Finding], validation: ValidationSummary, expec
 
     found_missing = [item.standard_id for item in findings if item.kind == "missing"]
     expected_missing = list(expected["expected_missing_clauses"])
+    accepted_extra = set(expected.get("accepted_extra_missing", []))
     missed_missing = [item for item in expected_missing if item not in found_missing]
 
     actual_ranking = [

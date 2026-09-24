@@ -96,7 +96,10 @@ def run_analysis(
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
     tracker = CostTracker(model=model_name or getattr(llm, "model", ""), run_id=run_id)
-    excerpts = scan_injection(document.full_text)
+    excerpts = scan_injection(
+        document.full_text,
+        pages=[(page.page, page.text) for page in document.pages],
+    )
     graph = build_graph(llm, tracker, library)
     state: dict = {
         "run_id": run_id,
@@ -141,7 +144,7 @@ def run_analysis(
     missing = [item for item in findings if item.kind == "missing"]
     amounts = [item.exposure.amount for item in unusual if item.exposure and item.exposure.amount is not None]
     created_at = datetime.now(timezone.utc).isoformat()
-    evaluation = maybe_evaluate(document.full_text, findings, validation)
+    evaluation = maybe_evaluate(document.full_text, findings, validation, filename=filename)
     active = StandardLibrary.model_validate(state["library"]) if state.get("library") else None
     result = AnalysisRun(
         run_id=run_id,

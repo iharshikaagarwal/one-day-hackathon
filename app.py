@@ -166,7 +166,6 @@ if prompt:
         add("user", "file", upload.name, text=text)
         render_message(st.session_state.messages[-1], {}, None)
         if analyze(upload.name, upload.getvalue()) and text:
-            add("user", "text", text)
             ask(text)
     elif text:
         add("user", "text", text)

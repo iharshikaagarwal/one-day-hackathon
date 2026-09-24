@@ -32,6 +32,7 @@ class LLMAgreementAnalysis(BaseModel):
 class LLMComparison(BaseModel):
     clause_number: str = ""
     standard_id: str = ""
+    verdict: Literal["aligned", "differs", "no_standard"] = "no_standard"
     is_unusual: bool = False
     difference: str = ""
     reason: str = ""

@@ -64,7 +64,7 @@
       "category": "penalties",
       "description": "A small or unclear charge is tied to severe default language.",
       "why_it_matters": "Severe default language can raise consequences beyond the stated fee, even when the fee itself is small.",
-      "related_standard_ids": ["STD-MOVEIN-001", "STD-MOVEOUT-001", "STD-LATE-001"],
+      "related_standard_ids": ["STD-MOVEIN-001", "STD-MOVEOUT-001", "STD-LATE-001", "STD-CHARGES-001"],
       "indicators": ["material breach", "serious default", "sole peril"],
       "suggested_review_action": "Ask for the charge to stay a stated fee, with a grace period where relevant, and without treating that fee alone as a serious default."
     },

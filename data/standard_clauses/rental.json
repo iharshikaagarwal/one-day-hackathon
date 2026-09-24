@@ -1,7 +1,7 @@
 {
   "library_name": "ClauseLens Rental Standard Clause Library",
   "agreement_type": "rental",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "jurisdiction": "India",
   "status": "active",
   "review_date": "2026-09-24",
@@ -18,6 +18,18 @@
     "percent_categories": ["rent_escalation"]
   },
   "legal_review_categories": ["early_termination", "damage", "deposit_refund", "inspection", "termination"],
+  "generic_standard_ids": ["STD-CHARGES-001"],
+  "generic_skip_categories": [
+    "monthly_rent",
+    "security_deposit",
+    "utilities",
+    "notice_period",
+    "lock_in",
+    "renewal",
+    "subletting",
+    "normal_wear",
+    "brokerage"
+  ],
   "heading_aliases": {
     "monthly rent": "monthly_rent",
     "security deposit": "security_deposit",
@@ -38,6 +50,8 @@
     "renewal": "renewal",
     "subletting": "subletting",
     "brokerage": "brokerage",
+    "additional charges": "additional_charges",
+    "penalty": "additional_charges",
     "general": "other",
     "signatures": "other"
   },
@@ -62,7 +76,8 @@
     {"category": "late_payment", "phrases": ["late fee"]},
     {"category": "renewal", "phrases": ["renewal"]},
     {"category": "subletting", "phrases": ["subletting"]},
-    {"category": "brokerage", "phrases": ["brokerage"]}
+    {"category": "brokerage", "phrases": ["brokerage"]},
+    {"category": "additional_charges", "phrases": ["additional charge", "additional charges", "any other charges", "lock replacement"]}
   ],
   "entries": [
     {
@@ -168,8 +183,8 @@
       ],
       "contradiction_indicators": [],
       "presence_indicators": ["itemised", "itemized"],
-      "report_if_absent": false,
-      "comparison_guidance": "Itemization is checked as an expected element of a damage or deduction clause. It is not reported again as a standalone missing clause when that clause is already flagged.",
+      "report_if_absent": true,
+      "comparison_guidance": "Treat itemized deductions as missing when the agreement never requires an itemized list. If a damage clause is already flagged for the same gap, this topic still records that the itemized-list protection is absent.",
       "financial_basis": "Itemization changes how a deduction is explained. It does not by itself create a new rupee figure.",
       "suggested_revision": "Any deduction from the security deposit shall be itemised in writing, with the amount and reason for each item.",
       "negotiation_goal": "Require an itemized list before any deduction.",
@@ -255,7 +270,7 @@
         {"element_id": "one_month_cap", "description": "Compensation does not exceed one month of rent", "any_of": ["one month's rent", "one month of rent", "1 month"]}
       ],
       "contradiction_indicators": ["two months' rent", "two months rent", "three months' rent", "three months rent"],
-      "presence_indicators": ["early termination"],
+      "presence_indicators": ["early termination", "compensation"],
       "report_if_absent": true,
       "comparison_guidance": "Flag early termination when compensation is two or more months of rent. One month of rent matches this comparison standard. This cap is a comparison baseline, not a legal limit.",
       "financial_basis": "Exposure is the stated multiple times the monthly rent in the agreement. Python multiplies those figures. Do not add a further penalty that is not written down.",
@@ -519,7 +534,7 @@
         {"element_id": "grace", "description": "A grace period applies", "any_of": ["grace period", "grace of"]}
       ],
       "contradiction_indicators": ["serious default", "sole peril"],
-      "presence_indicators": ["keys are not returned", "key return", "return of keys"],
+      "presence_indicators": ["keys are not returned", "key return", "return of keys", "keys are not", "lock replacement", "duplicate key"],
       "report_if_absent": false,
       "comparison_guidance": "Flag a key clause when delay is a serious default or the tenant bears the charge at their sole peril. A stated fee with a grace period matches this standard. Absence of a key clause is not a missing protection.",
       "financial_basis": "Exposure is the stated key fee. Do not add an extra penalty that is not priced.",
@@ -551,6 +566,67 @@
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
+    },
+    {
+      "standard_id": "STD-CHARGES-001",
+      "category": "additional_charges",
+      "title": "Additional charges and penalties",
+      "standard_expectation": "Any extra charge, fee, compensation, or penalty should be a stated rupee amount or a stated formula, with a defined trigger. Open-ended extra charges, charges left to one party's discretion, or a penalty with no figure differ from this comparison standard.",
+      "expected_elements": ["A stated amount or formula", "A defined trigger"],
+      "missing_elements": ["Stated amount or formula for the extra charge"],
+      "element_checks": [
+        {"element_id": "stated_amount", "description": "The extra charge is a stated amount or formula", "any_of": ["₹", "rs.", "rupees", "months' rent", "months rent"]}
+      ],
+      "contradiction_indicators": [
+        "additional charge",
+        "additional charges",
+        "any other charges",
+        "other charges",
+        "all charges",
+        "any charges",
+        "any penalty",
+        "penalty",
+        "as determined by the owner",
+        "at the owner's discretion",
+        "as the owner decides",
+        "at the sole discretion",
+        "lock replacement",
+        "duplicate key",
+        "lost key",
+        "sole peril",
+        "serious default",
+        "liquidated damages",
+        "two months",
+        "three months",
+        "2 months",
+        "3 months"
+      ],
+      "presence_indicators": [
+        "additional charge",
+        "additional charges",
+        "any other charges",
+        "other charges",
+        "penalty",
+        "compensation",
+        "lock replacement",
+        "duplicate key",
+        "lost key",
+        "keys are not",
+        "sole peril",
+        "serious default",
+        "as determined by the owner",
+        "at the owner's discretion",
+        "liquidated damages"
+      ],
+      "report_if_absent": false,
+      "comparison_guidance": "Flag a clause when it creates an extra charge, fee, compensation, or penalty that is open-ended, discretionary, or not a stated amount or formula. A stated fee with a stated trigger matches this comparison standard. Monthly rent, the security deposit figure, and a stated lock-in length are not additional charges. Absence of an extra-charge clause is not a missing protection.",
+      "financial_basis": "Exposure is the stated fee or the stated formula in the clause. If the clause creates a charge but states no amount and no formula, exposure is unknown. Do not invent a figure.",
+      "suggested_revision": "Any additional charge or penalty shall be a stated rupee amount or a stated formula, payable only after the stated trigger occurs.",
+      "negotiation_goal": "Replace open-ended extra charges with a stated amount or formula and a defined trigger.",
+      "why_it_matters": "An extra charge without a stated figure has no defensible rupee value, and an open-ended extra charge can sit on top of rent and the deposit.",
+      "version": "1.0.0",
+      "review_date": "2026-09-24",
+      "source_notes": "ClauseLens comparison baseline v1.2.0. Human-reviewed catch-all for extra charges and penalties that do not already sit under a more specific library entry. Not a legal requirement."
     }
   ]
 }

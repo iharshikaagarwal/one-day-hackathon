@@ -54,18 +54,12 @@ def run_missing(state: dict, llm, tracker) -> dict:
         warnings.append(error + " Missing topics were taken from the comparison-standard library.")
     elif isinstance(parsed, LLMMissingBatch):
         proposals = {item.standard_id: item for item in parsed.missing}
-        revised = []
         for item in grounded:
             proposal = proposals.get(item.standard_id)
-            if proposal and text_is_safe(proposal.why_it_matters) and proposal.why_it_matters.strip():
-                revised.append(item.model_copy(update={"why_it_matters": proposal.why_it_matters}))
-            else:
-                if proposal and not text_is_safe(proposal.why_it_matters):
-                    warnings.append(
-                        f"A model note for missing standard {item.standard_id} was discarded because it was not evidence-based."
-                    )
-                revised.append(item)
-        grounded = revised
+            if proposal and proposal.why_it_matters.strip() and not text_is_safe(proposal.why_it_matters):
+                warnings.append(
+                    f"A model note for missing standard {item.standard_id} was discarded because it was not evidence-based."
+                )
     status = "success" if not error else "fallback"
     return {
         "missing_clauses": [item.model_dump() for item in grounded],
