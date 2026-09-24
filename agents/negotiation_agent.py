@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from models.llm_schemas import LLMNegotiationBatch
 from models.schemas import Agreement, ClauseComparison, MissingClause, NegotiationDraft
@@ -9,6 +10,7 @@ from utils.security import text_is_safe
 from agents.common import started, system_prompt, trace_dict, try_parse, untrusted_user
 
 AGENT = "Negotiation Agent"
+_BATCH = 4
 
 
 def run_negotiation(state: dict, llm, tracker) -> dict:
@@ -32,25 +34,37 @@ def run_negotiation(state: dict, llm, tracker) -> dict:
         }
         for item in drafts
     ]
-    user = untrusted_user(
-        "Write a calm revision request for each finding in the untrusted data. Use the finding_key values exactly.",
-        json.dumps(brief, ensure_ascii=False),
-    )
-    parsed, error = try_parse(llm, tracker, AGENT, system_prompt("negotiation.txt"), user, LLMNegotiationBatch)
-    if error:
-        warnings.append(error + " Negotiation messages use the comparison library's suggested wording.")
-    elif isinstance(parsed, LLMNegotiationBatch):
+    chunks = [brief[index : index + _BATCH] for index in range(0, len(brief), _BATCH)]
+    system = system_prompt("negotiation.txt")
+
+    def _request(chunk: list[dict]):
+        user = untrusted_user(
+            "Write a calm revision request for each finding in the untrusted data. Use the finding_key values exactly.",
+            json.dumps(chunk, ensure_ascii=False),
+        )
+        return try_parse(llm, tracker, AGENT, system, user, LLMNegotiationBatch)
+
+    results: list[tuple] = []
+    if len(chunks) == 1:
+        results.append(_request(chunks[0]))
+    else:
+        with ThreadPoolExecutor(max_workers=min(3, len(chunks))) as pool:
+            futures = [pool.submit(_request, chunk) for chunk in chunks]
+            for future in as_completed(futures):
+                results.append(future.result())
+
+    errors = [error for parsed, error in results if error]
+    if errors and all(error for _parsed, error in results):
+        warnings.append(errors[0] + " Negotiation messages use the comparison library's suggested wording.")
+    for parsed, error in results:
+        if error or not isinstance(parsed, LLMNegotiationBatch):
+            continue
         for proposal in parsed.drafts:
             current = by_key.get(proposal.finding_key)
             if current is None:
                 continue
-            fields = [
-                proposal.ask,
-                proposal.why_it_matters,
-                proposal.replacement_wording,
-                proposal.ready_to_send_message,
-            ]
-            if all(text_is_safe(field) and field.strip() for field in fields) and _relevant(proposal, current):
+            reason = _discard_reason(proposal, current)
+            if reason is None:
                 by_key[proposal.finding_key] = NegotiationDraft(
                     finding_key=proposal.finding_key,
                     ask=proposal.ask.strip(),
@@ -60,9 +74,7 @@ def run_negotiation(state: dict, llm, tracker) -> dict:
                     source="model",
                 )
             else:
-                warnings.append(
-                    f"A negotiation draft for {proposal.finding_key} was discarded because it was not neutral or not specific."
-                )
+                warnings.append(f"A negotiation draft for {proposal.finding_key} was discarded because {reason}.")
 
     status = "success" if not error else "fallback"
     return {
@@ -101,22 +113,66 @@ def _relevant(proposal, current: NegotiationDraft) -> bool:
     return hits >= 2
 
 
+def _discard_reason(proposal, current: NegotiationDraft) -> str | None:
+    fields = [
+        proposal.ask,
+        proposal.why_it_matters,
+        proposal.replacement_wording,
+        proposal.ready_to_send_message,
+    ]
+    if not all(field.strip() for field in fields):
+        return "it was incomplete"
+    if not all(text_is_safe(field) for field in fields):
+        return "it was not neutral"
+    if not _relevant(proposal, current):
+        return "it was not specific to this clause"
+    return None
+
+
+_REJECTED_NAME_PARTS = {
+    "no",
+    "item",
+    "quantity",
+    "owner",
+    "schedule",
+    "the",
+}
+
+
 def _owner_name(state: dict) -> str:
     try:
         document = Agreement.model_validate(state.get("document") or {})
         text = document.full_text or ""
     except Exception:
         text = ""
-    match = re.search(
-        r"([A-Z][A-Za-z.]+(?:\s+[A-Z][A-Za-z.]+)?)\s+\((?:[Tt]he\s+)?[Oo]wner\)",
+    for match in re.finditer(
+        r"\b((?:Mr|Mrs|Ms|Dr)\.?\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\b",
+        text,
+    ):
+        window = text[match.end() : match.end() + 800]
+        if re.search(r"called\s+the\s+[\"“']?Owner\b", window, re.I):
+            name = _clean_name(match.group(1))
+            if name:
+                return name
+    parenthetical = re.search(
+        r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\s+\((?:[Tt]he\s+)?[Oo]wner\)",
         text,
     )
-    if match:
-        return match.group(1).strip()
-    labeled = re.search(r"\bOwner:\s*([A-Z][A-Za-z.]+(?:\s+[A-Z][A-Za-z.]+)?)", text)
-    if labeled:
-        return labeled.group(1).strip()
+    if parenthetical:
+        name = _clean_name(parenthetical.group(1))
+        if name:
+            return name
     return ""
+
+
+def _clean_name(raw: str) -> str:
+    name = " ".join(raw.replace("\n", " ").split()).strip(" .,")
+    parts = [part.strip(".") for part in name.split() if part.strip(".")]
+    if not parts or len(name) > 60:
+        return ""
+    if any(part.lower() in _REJECTED_NAME_PARTS for part in parts):
+        return ""
+    return " ".join(parts)
 
 
 def _with_greeting(message: str, owner: str = "") -> str:
@@ -134,7 +190,7 @@ def _with_greeting(message: str, owner: str = "") -> str:
 
 def _template(key: str, title: str, goal: str, why: str, revision: str, owner: str = "") -> NegotiationDraft:
     greeting = f"Hi {owner}," if owner else "Hi,"
-    message = f'{greeting} could we revise the {title} wording so that it reads as follows: "{revision}"'
+    message = f'{greeting} could we change the {title} clause to: "{revision}"'
     return NegotiationDraft(
         finding_key=key,
         ask=goal or f"Revise the {title} wording.",

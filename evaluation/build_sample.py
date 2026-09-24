@@ -6,7 +6,7 @@ import pymupdf as fitz
 
 from evaluation.agreement_text import PAGES
 
-SAMPLE_PATH = Path(__file__).resolve().parent / "test_agreements" / "karthik_agreement.pdf"
+SAMPLE_PATH = Path(__file__).resolve().parent / "test_agreements" / "sample_rental_01.pdf"
 
 
 def build_pdf_bytes(pages: list[str] | None = None) -> bytes:

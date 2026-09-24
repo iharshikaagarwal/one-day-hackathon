@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from threading import Lock
 
 from utils.config import ROOT
 
@@ -21,11 +22,13 @@ class CostTracker:
     events: list[UsageEvent] = field(default_factory=list)
     pricing_note: str = ""
     estimated_cost_usd: float = 0.0
+    _lock: Lock = field(default_factory=Lock, repr=False)
 
     def record(self, agent: str, input_tokens: int, output_tokens: int) -> None:
-        self.events.append(
-            UsageEvent(agent=agent, input_tokens=int(input_tokens or 0), output_tokens=int(output_tokens or 0))
-        )
+        with self._lock:
+            self.events.append(
+                UsageEvent(agent=agent, input_tokens=int(input_tokens or 0), output_tokens=int(output_tokens or 0))
+            )
 
     def tokens_for(self, agent: str) -> tuple[int, int]:
         incoming = sum(event.input_tokens for event in self.events if event.agent == agent)

@@ -137,11 +137,48 @@ def run_validation(state: dict, tracker, library_version: str | None = None) -> 
     }
 
 
+def _quote_candidates(text: str) -> list[str]:
+    full = text.strip()
+    candidates = [full]
+    lines = [line for line in full.splitlines() if line.strip()]
+    if len(lines) > 1:
+        candidates.append("\n".join(lines[1:]).strip())
+    return [item for item in candidates if item]
+
+
+def _page_contains(quote: str, page_text: str) -> bool:
+    return bool(page_text) and normalize_text(quote) in normalize_text(page_text)
+
+
+def _locate_quote(comparison, pages: dict[int, str]) -> tuple[int | None, str]:
+    cited = comparison.page
+    quotes = _quote_candidates(comparison.agreement_text)
+    order = [cited]
+    for offset in (-1, 1):
+        neighbour = (cited or 0) + offset
+        if neighbour in pages and neighbour not in order:
+            order.append(neighbour)
+    for page in order:
+        page_text = pages.get(page, "")
+        if any(_page_contains(quote, page_text) for quote in quotes):
+            if page != cited:
+                comparison.page = page
+            return page, ""
+    cited_text = pages.get(cited, "")
+    snippet = " ".join(cited_text.split())[:180]
+    quote = " ".join((quotes[0] if quotes else comparison.agreement_text).split())[:180]
+    detail = (
+        f"Clause {comparison.clause_number}: quoted text was not found on page {cited}. "
+        f'Rejected quote: "{quote}". Closest page text: "{snippet}".'
+    )
+    return None, detail
+
+
 def _validate_unusual(comparison, exposure, negotiation, pages, context) -> list[str]:
     reasons: list[str] = []
-    page_text = pages.get(comparison.page, "")
-    if not page_text or normalize_text(comparison.agreement_text) not in normalize_text(page_text):
-        reasons.append(f"Clause {comparison.clause_number}: quoted text was not found on page {comparison.page}.")
+    located, reject_note = _locate_quote(comparison, pages)
+    if located is None:
+        reasons.append(reject_note)
     if not comparison.standard_id or not comparison.standard_expectation:
         reasons.append(f"Clause {comparison.clause_number}: the standard reference is missing.")
     if not comparison.difference or not comparison.reason:

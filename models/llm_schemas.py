@@ -45,6 +45,7 @@ class LLMComparisonBatch(BaseModel):
 
 class LLMMissing(BaseModel):
     standard_id: str = ""
+    absent: bool = True
     why_it_matters: str = ""
     absence_evidence: str = ""
 

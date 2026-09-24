@@ -5,6 +5,7 @@ import re
 from models.schemas import Agreement, AgreementClause, DocumentChunk, PageText
 
 _HEADING = re.compile(r"^(\d+\.\d+)\s+(\S.*?)\s*$")
+_SECTION = re.compile(r"^(\d+)\.\s+([A-Z][A-Z0-9 /,'()\-]{2,})\s*$")
 _FOOTER = re.compile(r"^Page\s+\d+\s+of\s+\d+$", re.IGNORECASE)
 
 
@@ -55,6 +56,10 @@ def build_document(filename: str, pages: list[PageText]) -> Agreement:
                 current_number = match.group(1)
                 current_title = match.group(2).strip()
                 body = []
+                continue
+            if current_number and _SECTION.match(line):
+                flush_clause()
+                preamble.append(line)
                 continue
             if current_number:
                 body.append(line)

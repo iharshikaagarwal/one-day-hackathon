@@ -1,7 +1,7 @@
 {
   "library_name": "ClauseLens Rental Standard Clause Library",
   "agreement_type": "rental",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "jurisdiction": "India",
   "status": "active",
   "review_date": "2026-09-24",
@@ -117,12 +117,28 @@
       ],
       "contradiction_indicators": ["any damage", "entire security deposit", "entire deposit", "whole deposit", "retain the entire"],
       "presence_indicators": ["any damage", "damage caused", "damage to the property"],
+      "context_indicators": ["security deposit", "deposit", "deduct", "retain", "refund"],
+      "indicator_groups": [
+        {
+          "phrases": ["entire security deposit", "entire deposit", "whole deposit", "retain the entire"],
+          "reason": "The clause can put the whole deposit at stake for a word it does not define, and it does not require an inspection or an itemized list.",
+          "negotiation_goal": "Replace undefined whole-deposit retention with itemized deductions after a joint inspection.",
+          "suggested_revision": "Deductions shall be itemised following a joint inspection within 7 days of vacating, and the remaining balance shall be refunded within 30 days. Damage means loss beyond normal wear and tear."
+        },
+        {
+          "phrases": ["any damage"],
+          "reason": "The clause allows a deposit deduction for damage without a joint inspection or an itemized list. It does not say the owner may keep the entire deposit.",
+          "negotiation_goal": "Require a joint inspection and an itemized list before any deposit deduction.",
+          "suggested_revision": "Deductions from the security deposit shall be itemised following a joint inspection, and shall exclude normal wear and tear."
+        }
+      ],
       "report_if_absent": true,
-      "comparison_guidance": "Flag this clause when it lets the owner keep the deposit for damage that the clause does not define, or when the clause allows retention of the entire deposit without itemization and an inspection.",
+      "comparison_guidance": "Flag this clause when it lets the owner keep the deposit for damage that the clause does not define, or when the clause allows retention of the entire deposit without itemization and an inspection. Do not flag a clause that only assigns responsibility for pet or third-party damage and never mentions the deposit.",
       "financial_basis": "If the clause permits retention of the entire security deposit, potential exposure is the deposit amount. That figure is a maximum relevant asset, not a prediction of loss.",
       "suggested_revision": "Deductions shall be itemised following a joint inspection within 7 days of vacating, and the remaining balance shall be refunded within 30 days. Damage means loss beyond normal wear and tear.",
       "negotiation_goal": "Replace undefined whole-deposit retention with itemized deductions after a joint inspection.",
       "why_it_matters": "The clause can put the whole deposit at stake for a word it does not define, and it does not require an inspection or an itemized list.",
+      "why_it_matters_if_absent": "The agreement never states how damage deductions from the deposit are limited.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
@@ -255,6 +271,7 @@
       "suggested_revision": "Monthly rent shall increase by a stated percentage on each anniversary, and not otherwise.",
       "negotiation_goal": "Replace an open-ended increase with a stated percentage and date.",
       "why_it_matters": "An increase without a figure has no defensible rupee value.",
+      "why_it_matters_if_absent": "The agreement never states whether rent can increase, or by how much.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
@@ -270,16 +287,17 @@
         {"element_id": "one_month_cap", "description": "Compensation does not exceed one month of rent", "any_of": ["one month's rent", "one month of rent", "1 month"]}
       ],
       "contradiction_indicators": ["two months' rent", "two months rent", "three months' rent", "three months rent"],
-      "presence_indicators": ["early termination", "compensation"],
+      "presence_indicators": ["early termination", "compensation", "vacates during", "terminate", "lock-in", "exit"],
       "report_if_absent": true,
       "comparison_guidance": "Flag early termination when compensation is two or more months of rent. One month of rent matches this comparison standard. This cap is a comparison baseline, not a legal limit.",
       "financial_basis": "Exposure is the stated multiple times the monthly rent in the agreement. Python multiplies those figures. Do not add a further penalty that is not written down.",
       "suggested_revision": "If the tenant terminates during the lock-in period after giving the agreed notice, early-termination compensation shall not exceed one month's rent.",
       "negotiation_goal": "Cap early-termination compensation at one month of rent and keep the notice period in place.",
       "why_it_matters": "A multiple of rent is a definite exit cost, even when the sentence sounds like a routine condition.",
+      "why_it_matters_if_absent": "The agreement never states the cost or process for leaving before the term ends.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
-      "source_notes": "The one-month cap is the ClauseLens comparison baseline, not a claim about statutory damages."
+      "source_notes": "The one-month rent cap is a ClauseLens comparison baseline, not a statutory cap. Human-reviewed 2026-09-24. Not a claim about Indian law."
     },
     {
       "standard_id": "STD-NOTICE-001",
@@ -380,13 +398,14 @@
         {"element_id": "notify", "description": "Defects are notified and structural repairs sit with the owner", "any_of": ["structural defects", "notify the owner"]}
       ],
       "contradiction_indicators": ["tenant shall carry out all structural repairs"],
-      "presence_indicators": ["structural defects", "repair structural"],
+      "presence_indicators": ["structural defects", "repair structural", "structural repairs", "repairs", "repair"],
       "report_if_absent": true,
       "comparison_guidance": "Flag repairs only when structural work is placed entirely on the tenant.",
       "financial_basis": "No repair invoice is invented.",
       "suggested_revision": "The tenant shall notify the owner of defects in writing. The owner shall repair structural defects.",
       "negotiation_goal": "Keep structural repairs with the owner.",
       "why_it_matters": "Structural repairs can be expensive, and the agreement should say who performs them.",
+      "why_it_matters_if_absent": "The agreement never states who carries out structural repairs.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
@@ -431,6 +450,7 @@
       "suggested_revision": "The tenant shall leave the premises in broom-clean condition, fair wear from ordinary use excepted.",
       "negotiation_goal": "Use a defined cleaning standard instead of an open-ended fee.",
       "why_it_matters": "An undefined cleaning charge has no amount until a fee is written down.",
+      "why_it_matters_if_absent": "The agreement never states the move-out cleaning standard.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
@@ -453,6 +473,7 @@
       "suggested_revision": "A late fee of a stated amount per day applies after a stated grace period and is capped at a stated amount per month.",
       "negotiation_goal": "Keep the late fee stated, delayed by a grace period, and capped.",
       "why_it_matters": "An uncapped daily fee has no maximum that can be calculated.",
+      "why_it_matters_if_absent": "The agreement never states a late-payment fee or grace period.",
       "version": "1.0.0",
       "review_date": "2026-09-01",
       "source_notes": "ClauseLens comparison baseline v1.0.0. Not a legal requirement."
@@ -575,7 +596,7 @@
       "expected_elements": ["A stated amount or formula", "A defined trigger"],
       "missing_elements": ["Stated amount or formula for the extra charge"],
       "element_checks": [
-        {"element_id": "stated_amount", "description": "The extra charge is a stated amount or formula", "any_of": ["₹", "rs.", "rupees", "months' rent", "months rent"]}
+        {"element_id": "stated_amount", "description": "The extra charge is a stated amount or formula", "any_of": ["₹", "rs.", "rupees", "months' rent", "months rent", "month's rent", "%", "percent"]}
       ],
       "contradiction_indicators": [
         "additional charge",
@@ -585,7 +606,10 @@
         "all charges",
         "any charges",
         "any penalty",
-        "penalty",
+        "in addition to the rent",
+        "penalty equal to",
+        "as the owner may notify",
+        "reasonable administrative expenses",
         "as determined by the owner",
         "at the owner's discretion",
         "as the owner decides",
@@ -606,7 +630,10 @@
         "additional charges",
         "any other charges",
         "other charges",
-        "penalty",
+        "in addition to the rent",
+        "penalty equal to",
+        "as the owner may notify",
+        "reasonable administrative expenses",
         "compensation",
         "lock replacement",
         "duplicate key",
@@ -618,12 +645,45 @@
         "at the owner's discretion",
         "liquidated damages"
       ],
+      "indicator_groups": [
+        {
+          "phrases": [
+            "as the owner may notify",
+            "reasonable administrative expenses",
+            "as determined by the owner",
+            "at the owner's discretion",
+            "as the owner decides",
+            "at the sole discretion",
+            "any other charges",
+            "any penalty",
+            "sole peril"
+          ],
+          "reason": "The clause lets the owner set an extra charge later, so there is no figure to calculate. The exposure stays unknown.",
+          "negotiation_goal": "Replace the open-ended charge with a stated amount or formula and a defined trigger.",
+          "override_generic_skip": true,
+          "only_when_unpriced": true
+        },
+        {
+          "phrases": ["in addition to the rent"],
+          "reason": "The clause adds a penalty on top of the rent if the tenant leaves during the lock-in period. The comparison standard treats a stated lock-in length as separate from that extra penalty.",
+          "negotiation_goal": "Remove the extra lock-in penalty, or replace it with one stated sum for leaving during the lock-in period.",
+          "suggested_revision": "If the tenant vacates during the lock-in period after giving the agreed notice, no extra penalty is payable on top of the rent. If a charge is kept, it shall be one stated amount for that event.",
+          "override_generic_skip": true
+        },
+        {
+          "phrases": ["penalty equal to"],
+          "reason": "The clause adds a penalty equal to a share of one month's rent for unauthorised occupancy. The comparison standard expects a stated occupancy or subletting rule without that extra penalty, or one stated sum for that event.",
+          "negotiation_goal": "Remove the occupancy penalty, or replace it with one stated sum for that event.",
+          "suggested_revision": "Unauthorised occupancy is not permitted. If a charge is kept for that event, it shall be one stated amount and the only sum payable for that event.",
+          "override_generic_skip": true
+        }
+      ],
       "report_if_absent": false,
-      "comparison_guidance": "Flag a clause when it creates an extra charge, fee, compensation, or penalty that is open-ended, discretionary, or not a stated amount or formula. A stated fee with a stated trigger matches this comparison standard. Monthly rent, the security deposit figure, and a stated lock-in length are not additional charges. Absence of an extra-charge clause is not a missing protection.",
+      "comparison_guidance": "Flag a penalty that sits on top of the rent, and flag a charge the owner may set later. A stated fee with a stated trigger, and no extra penalty, matches this comparison standard. Do not flag a clause only because it contains the word penalty. Rent, the held amount, and a stated lock-in length are not additional charges. Absence of an extra-charge clause is not a missing protection.",
       "financial_basis": "Exposure is the stated fee or the stated formula in the clause. If the clause creates a charge but states no amount and no formula, exposure is unknown. Do not invent a figure.",
       "suggested_revision": "Any additional charge or penalty shall be a stated rupee amount or a stated formula, payable only after the stated trigger occurs.",
       "negotiation_goal": "Replace open-ended extra charges with a stated amount or formula and a defined trigger.",
-      "why_it_matters": "An extra charge without a stated figure has no defensible rupee value, and an open-ended extra charge can sit on top of rent and the deposit.",
+      "why_it_matters": "A charge the owner can set later, or a penalty added on top of the rent, differs from one stated fee for a defined event.",
       "version": "1.0.0",
       "review_date": "2026-09-24",
       "source_notes": "ClauseLens comparison baseline v1.2.0. Human-reviewed catch-all for extra charges and penalties that do not already sit under a more specific library entry. Not a legal requirement."

@@ -8,7 +8,7 @@ The analysis engine is the same for every type. The detected type only decides w
 
 ## Problem statement
 
-Karthik has an eleven-page rental agreement and a same-day signing request. The deposit is six months of rent. Nothing looks obviously wrong, because he has no comparison set. Four clauses are unusual. One lets the owner keep the entire deposit for "any damage", without defining damage or an inspection. Two smaller charges and an early-termination fee are also outside the comparison standard. The agreement never says when the remaining deposit comes back, and it never describes an inspection or itemized deductions.
+A tenant has an eleven-page rental agreement and a same-day signing request. The deposit is six months of rent. Nothing looks obviously wrong, because there is no comparison set. Four clauses are unusual. One lets the owner keep the entire deposit for "any damage", without defining damage or an inspection. Two smaller charges and an early-termination fee are also outside the comparison standard. The agreement never says when the remaining deposit comes back, and it never describes an inspection or itemized deductions.
 
 ## Why this problem is difficult
 
@@ -44,7 +44,7 @@ The model may explain a clause and propose a financial rule. Python performs the
 - Evidence on every finding
 - Evidence validation that rejects unsupported findings
 - Prompt-injection handling for hostile text inside the PDF
-- Evaluation when the upload matches a known case in `evaluation/expected_results.json`
+- A test-only answer key in `evaluation/expected_results.json` (not used when a PDF is analyzed in the app)
 - Per-run token counts and an estimated API cost
 - A record of which library version was used
 - Marks for clauses that should go to a lawyer
@@ -304,7 +304,7 @@ one-day-hackathon/
 │   └── assets/
 ├── data/
 │   ├── standard_clauses/
-│   │   ├── rental.json         v1.2.0
+│   │   ├── rental.json         v1.2.2
 │   │   ├── employment.json     v0.1.0
 │   │   └── service.json        v0.1.0
 │   ├── agreement_types.json
@@ -361,7 +361,7 @@ Run the tests from `one-day-hackathon/`:
 ## Example workflow
 
 1. Open ClauseLens. The first screen is a chat, with starter questions for rental, employment, and how the exposure math works.
-2. Attach a text-based agreement PDF in the chat input. The sample file is `evaluation/test_agreements/karthik_agreement.pdf`. Generate it with `python -m evaluation.build_sample` if it is missing. You can type a question in the same message.
+2. Attach a text-based agreement PDF in the chat input. The sample file is `evaluation/test_agreements/sample_rental_01.pdf`. Generate it with `python -m evaluation.build_sample` if it is missing. You can type a question in the same message.
 3. A status list moves through parsing and the eight graph steps.
 4. The thread shows a short summary, a **Download report** button, and the full report. The report opens on Overview: unusual clauses, missing clauses, the largest potential exposure, and clauses marked for review.
 5. Open the top finding. For the sample agreement the architecture is built to surface clause 7.1, the undefined damage deduction, with the deposit as the potential maximum.
@@ -397,7 +397,7 @@ There is one library file per agreement type in `data/standard_clauses/`. Each f
 
 | Type | File | Status |
 | --- | --- | --- |
-| Rental | `rental.json` v1.2.0 | Full library, fully tested demo |
+| Rental | `rental.json` v1.2.2 | Full library, fully tested demo |
 | Employment | `employment.json` v0.1.0 | Starter: salary, payment in lieu of notice, non-compete, final settlement |
 | Service | `service.json` v0.1.0 | Starter: payment terms, liability cap, termination |
 | Vendor | none | Detected, reported as unsupported |
@@ -430,9 +430,9 @@ Uploaded PDFs are untrusted. System prompts tell the model not to follow instruc
 
 ## Evaluation methodology
 
-`evaluation/expected_results.json` holds two manually scored cases. A run is scored when the uploaded filename is listed on a case, or when the Karthik marker `CLAUSELENS-EVAL-CASE-001` is in the text. Other uploads are not scored. The scores describe that case only.
+`evaluation/expected_results.json` is the golden dataset: pytest answer keys only. See `evaluation/GOLDEN_DATASET.md`. The live workflow does not read this file. Case IDs are generic (`sample_rental_01`, `sample_rental_02`, `sample_rental_03`). There are no personal names.
 
-`evaluation/test_agreements/karthik_agreement.pdf` is a synthetic agreement built to be difficult:
+`evaluation/test_agreements/sample_rental_01.pdf` is a synthetic agreement built to be difficult:
 
 - ordinary rent and notice clauses that should not be flagged
 - an administrative charge of ₹2,000 tied to material-breach language
@@ -442,13 +442,13 @@ Uploaded PDFs are untrusted. System prompts tell the model not to follow instruc
 - no deposit-return timeline, no inspection, and no itemized-deduction wording
 - a prompt-injection sentence
 
-The second case, `harshika_rental_agreement.pdf`, is matched by filename. Its expected unusual clauses are `7.1`, `4.2`, `9.3`, and `6.4`. Clause `6.4` has no calculable amount, so it stays in the unknown group and is not ranked.
+`sample_rental_02` locks a second ranking profile: unusual `7.1`, `4.2`, `9.3`, and `6.4`, with `6.4` unranked. `sample_rental_03` locks false-positive filters (pet damage without a deposit is not unusual; present topics are not reported missing).
 
 The tests also run the full LangGraph workflow with a fake model client. That proves the library, calculator, ranker, and validator reproduce the benchmark without a live API call and without a hardcoded dashboard result. A live OpenAI run uses the same path. If the model disagrees with the text, the text and the library win, and the trace says so.
 
 ## Evaluation metrics
 
-For the sample case the app reports:
+For the sample case the test suite reports:
 
 - clause detection recall and precision
 - missing-clause detection
@@ -456,7 +456,7 @@ For the sample case the app reports:
 - pairwise ranking agreement against the expected order
 - evidence validation rate
 
-For the Karthik case the expected order is `7.1 > 9.3 > 4.2 > 6.4`, because the defensible amounts are the full deposit, then two months of rent, then ₹2,000, then ₹1,500. For the Harshika case the expected order is `7.1 > 4.2 > 9.3`, with `6.4` unscored. If a run disagrees, the report shows both orders.
+For `sample_rental_01` the expected order is `7.1 > 9.3 > 4.2 > 6.4`, because the defensible amounts are the full deposit, then two months of rent, then ₹2,000, then ₹1,500. For `sample_rental_02` the expected order is `7.1 > 4.2 > 9.3`, with `6.4` unscored.
 
 ## Cost tracking
 
@@ -480,7 +480,7 @@ ClauseLens will not say that an agreement should be signed or refused. It will n
 - The one-month early-termination cap and the suggested 30-day refund are comparison wording, not a claim about Indian law.
 - Negotiation text from the model is replaced by library wording when it fails the safety or relevance checks.
 - Estimated cost depends on the price file staying up to date.
-- The evaluation scores describe the known cases in `evaluation/expected_results.json`. A file that is not one of those cases is not scored.
+- Answer-key scores in `evaluation/expected_results.json` are for pytest only. The live app does not read that file.
 
 ## Future improvements
 

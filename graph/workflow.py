@@ -16,7 +16,6 @@ from agents.ranking_agent import run_ranking
 from agents.validation_agent import run_validation
 from document.chunker import build_document
 from document.parser import parse_pdf
-from evaluation.evaluator import maybe_evaluate
 from graph.state import AnalysisState
 from models.schemas import (
     AgentTraceEntry,
@@ -47,6 +46,26 @@ NODE_LABELS = {
 }
 
 _LIST_KEYS = {"trace", "errors", "warnings"}
+
+_NEXT_NODES = {
+    "agreement_type_detector": ["agreement_analyst"],
+    "agreement_analyst": ["standards_comparator", "missing_clause_detector"],
+    "standards_comparator": ["financial_exposure"],
+    "missing_clause_detector": ["financial_exposure"],
+    "financial_exposure": ["financial_ranker"],
+    "financial_ranker": ["negotiation_agent"],
+    "negotiation_agent": ["evidence_validator"],
+}
+
+
+def _emit_step(on_step: Callable[..., None] | None, label: str, phase: str) -> None:
+    if on_step is None:
+        return
+    try:
+        on_step(label, phase)
+    except TypeError:
+        if phase == "complete":
+            on_step(label)
 
 
 def build_graph(llm, tracker: CostTracker, library_override: StandardLibrary | None = None):
@@ -83,7 +102,7 @@ def run_analysis(
     llm,
     library: StandardLibrary | None = None,
     model_name: str = "",
-    on_step: Callable[[str], None] | None = None,
+    on_step: Callable[..., None] | None = None,
 ) -> AnalysisRun:
     pages = parse_pdf(pdf_bytes)
     document = build_document(filename, pages)
@@ -124,12 +143,14 @@ def run_analysis(
         "warnings": [],
     }
     try:
+        _emit_step(on_step, NODE_LABELS["agreement_type_detector"], "running")
         for update in graph.stream(state, stream_mode="updates"):
             node_name, partial = next(iter(update.items()))
             _merge_update(state, partial)
             logger.info("completed %s for run %s", node_name, run_id)
-            if on_step:
-                on_step(NODE_LABELS.get(node_name, node_name))
+            _emit_step(on_step, NODE_LABELS.get(node_name, node_name), "complete")
+            for nxt in _NEXT_NODES.get(node_name, []):
+                _emit_step(on_step, NODE_LABELS[nxt], "running")
     except UserFacingError:
         raise
     except Exception as exc:
@@ -144,7 +165,6 @@ def run_analysis(
     missing = [item for item in findings if item.kind == "missing"]
     amounts = [item.exposure.amount for item in unusual if item.exposure and item.exposure.amount is not None]
     created_at = datetime.now(timezone.utc).isoformat()
-    evaluation = maybe_evaluate(document.full_text, findings, validation, filename=filename)
     active = StandardLibrary.model_validate(state["library"]) if state.get("library") else None
     result = AnalysisRun(
         run_id=run_id,
@@ -165,7 +185,7 @@ def run_analysis(
         trace=[AgentTraceEntry.model_validate(item) for item in state.get("trace", [])],
         cost=CostSummary.model_validate(tracker.summary_dict()),
         validation=validation,
-        evaluation=evaluation,
+        evaluation=None,
         errors=list(state.get("errors", [])),
         warnings=list(dict.fromkeys(state.get("warnings", []))),
         injection_excerpts=excerpts,

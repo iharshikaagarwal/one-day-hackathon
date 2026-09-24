@@ -109,6 +109,17 @@ def test_missing_quote_is_rejected():
     result = run_validation(_state(bad), CostTracker(model="gpt-4.1-mini", run_id="t"), "1.0.0")
     assert result["findings"] == []
     assert result["validation"]["rejected"] == 1
+    note = result["validation"]["rejected_reasons"][0]
+    assert "Rejected quote" in note
+    assert "Closest page text" in note
+    assert "This sentence is not in the PDF." in note
+
+
+def test_quote_on_adjacent_page_is_accepted():
+    comparison = _comparison(page=5)
+    result = run_validation(_state(comparison), CostTracker(model="gpt-4.1-mini", run_id="t"), "1.0.0")
+    assert result["validation"]["rejected"] == 0
+    assert result["findings"][0]["page"] == 6
 
 
 def test_signing_recommendation_is_rejected():
@@ -141,7 +152,7 @@ def test_missing_wear_is_not_sent_to_legal_review():
             ask="Define wear and tear.",
             why_it_matters="A missing wear-and-tear definition leaves ordinary use open to being treated as damage.",
             replacement_wording="Normal wear and tear means deterioration from ordinary use.",
-            ready_to_send_message='Hi Anil Mehta, could we revise the Normal wear and tear wording so that it reads as follows: "Normal wear and tear means deterioration from ordinary use."',
+            ready_to_send_message='Hi, could we revise the Normal wear and tear wording so that it reads as follows: "Normal wear and tear means deterioration from ordinary use."',
             source="library_template",
         ).model_dump()
     )
@@ -151,14 +162,21 @@ def test_missing_wear_is_not_sent_to_legal_review():
 
 
 def test_negotiation_greeting_uses_owner_name():
-    from agents.negotiation_agent import _with_greeting
+    from agents.negotiation_agent import _owner_name, _with_greeting
 
-    assert _with_greeting("Could we revise the damage clause?", "Anil Mehta") == (
-        "Hi Anil Mehta, Could we revise the damage clause?"
+    assert _with_greeting("Could we revise the damage clause?", "the Owner") == (
+        "Hi the Owner, Could we revise the damage clause?"
     )
-    assert _with_greeting("Hi, could we revise the damage clause?", "Anil Mehta") == (
-        "Hi Anil Mehta, could we revise the damage clause?"
+    assert _with_greeting("Hi, could we revise the damage clause?", "the Owner") == (
+        "Hi the Owner, could we revise the damage clause?"
     )
+    schedule = (
+        'Mr. Test Counterparty (hereinafter called the "Owner").\n'
+        "property of the Owner:\nNo.\nItem\nQuantity\n"
+    )
+    blank = {"filename": "a.pdf", "page_count": 1, "pages": [], "chunks": [], "clauses": []}
+    assert _owner_name({"document": {**blank, "full_text": schedule}}) == "Mr Test Counterparty"
+    assert _owner_name({"document": {**blank, "full_text": "Owner:\nNo.\nItem\n"}}) == ""
 
 
 def test_illegal_claim_is_rejected():

@@ -83,6 +83,15 @@ class ElementCheck(BaseModel):
     any_of: list[str]
 
 
+class IndicatorGroup(BaseModel):
+    phrases: list[str]
+    reason: str = ""
+    negotiation_goal: str = ""
+    suggested_revision: str = ""
+    override_generic_skip: bool = False
+    only_when_unpriced: bool = False
+
+
 class StandardClause(BaseModel):
     standard_id: str
     category: str
@@ -93,12 +102,15 @@ class StandardClause(BaseModel):
     element_checks: list[ElementCheck] = Field(default_factory=list)
     contradiction_indicators: list[str] = Field(default_factory=list)
     presence_indicators: list[str] = Field(default_factory=list)
+    context_indicators: list[str] = Field(default_factory=list)
+    indicator_groups: list[IndicatorGroup] = Field(default_factory=list)
     report_if_absent: bool = False
     comparison_guidance: str
     financial_basis: str
     suggested_revision: str
     negotiation_goal: str
     why_it_matters: str
+    why_it_matters_if_absent: str = ""
     version: str
     review_date: str
     source_notes: str
@@ -320,6 +332,7 @@ class EvaluationResult(BaseModel):
     clause_detection_recall: float
     clause_detection_precision: float
     missing_detection_recall: float
+    missing_detection_precision: float = 0.0
     normal_clause_false_positive_rate: float
     ranking_agreement: float | None
     evidence_validation_rate: float

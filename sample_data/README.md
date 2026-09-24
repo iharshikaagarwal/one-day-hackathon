@@ -1,8 +1,8 @@
 # Sample agreement
 
-`evaluation/test_agreements/karthik_agreement.pdf` is a synthetic eleven-page rental agreement for the hackathon demonstration.
+`evaluation/test_agreements/sample_rental_01.pdf` is a synthetic eleven-page rental agreement for the hackathon demonstration.
 
-It is not a real contract. The tenant and owner are fictional. Regenerate it with:
+It is not a real contract. Parties are labeled only as owner and tenant. Regenerate it with:
 
 ```bash
 python -m evaluation.build_sample

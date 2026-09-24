@@ -83,6 +83,8 @@ def score_findings(findings: list[Finding], validation: ValidationSummary, expec
     recall = _ratio(len(expected_set & found_set), len(expected_set))
     precision = _ratio(len(expected_set & found_set), len(found_set)) if found_set else 0.0
     missing_recall = _ratio(len(set(expected_missing) & set(found_missing)), len(expected_missing))
+    accepted_found = [item for item in found_missing if item in set(expected_missing) | accepted_extra]
+    missing_precision = _ratio(len(accepted_found), len(found_missing)) if found_missing else 0.0
     false_positive_rate = _ratio(len(false_positives), len(expected_normal))
     ranking = _ranking_agreement(expected_ranking, actual_ranking)
     evidence_rate = _ratio(validation.evidence_backed, validation.evidence_considered)
@@ -93,6 +95,7 @@ def score_findings(findings: list[Finding], validation: ValidationSummary, expec
         clause_detection_recall=recall,
         clause_detection_precision=precision,
         missing_detection_recall=missing_recall,
+        missing_detection_precision=missing_precision,
         normal_clause_false_positive_rate=false_positive_rate,
         ranking_agreement=ranking,
         evidence_validation_rate=evidence_rate,

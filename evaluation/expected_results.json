@@ -1,10 +1,13 @@
 {
+  "schema_version": "2.0",
+  "purpose": "Pytest answer keys only. The live analysis workflow does not read this file.",
   "cases": [
     {
-      "case_id": "karthik_eleven_page",
-      "filenames": ["karthik_agreement.pdf"],
+      "case_id": "sample_rental_01",
+      "filenames": ["sample_rental_01.pdf"],
       "marker": "CLAUSELENS-EVAL-CASE-001",
-      "description": "Synthetic evaluation agreement. Metrics are results on this dataset only, not general real-world accuracy.",
+      "source": "evaluation/agreement_text.py",
+      "description": "Synthetic eleven-page rental used by the full-graph pytest. Metrics describe this fixture only.",
       "expected_unusual_clauses": ["7.1", "9.3", "4.2", "6.4"],
       "expected_missing_clauses": ["STD-REFUND-001", "STD-INSPECT-001"],
       "accepted_extra_missing": ["STD-ITEMIZE-001"],
@@ -15,13 +18,14 @@
         "amount": 120000,
         "currency": "INR"
       },
-      "notes": "Expected ranking follows defensible exposure: entire deposit, then two months of rent, then the stated ₹2,000 charge, then the stated ₹1,500 charge. Alarming wording is not the ranking key."
+      "notes": "Ranking follows defensible exposure: entire deposit, then two months of rent, then the stated 2000 charge, then the stated 1500 charge. Alarming wording is not the ranking key."
     },
     {
-      "case_id": "harshika_rental",
-      "filenames": ["harshika_rental_agreement.pdf"],
-      "marker": "",
-      "description": "Harshika rental agreement evaluation case. Looked up by filename. Metrics are results on this document only.",
+      "case_id": "sample_rental_02",
+      "filenames": ["sample_rental_02.pdf"],
+      "marker": "CLAUSELENS-EVAL-CASE-002",
+      "source": "pytest fixture in tests/test_sample_agreement.py",
+      "description": "Second rental profile: same unusual clause numbers, different ranking, and 6.4 left unranked. Metrics describe this fixture only.",
       "expected_unusual_clauses": ["7.1", "4.2", "9.3", "6.4"],
       "expected_missing_clauses": ["STD-REFUND-001", "STD-INSPECT-001"],
       "accepted_extra_missing": ["STD-ITEMIZE-001", "STD-BROKER-001", "STD-WEAR-001"],
@@ -33,7 +37,24 @@
         "amount": 120000,
         "currency": "INR"
       },
-      "notes": "Expected unusual set is 7.1, 4.2, 9.3, and 6.4. Ranking is 7.1 > 4.2 > 9.3. Clause 6.4 is the unknown-exposure group and is not ranked. Core missing topics are the deposit return timeline and inspection. Itemized deductions, brokerage, and wear and tear are accepted extras. Traps 7.2, 2.4, and 4.4 must stay unflagged."
+      "notes": "Unusual set is 7.1, 4.2, 9.3, and 6.4. Ranking is 7.1 > 4.2 > 9.3. Clause 6.4 has no calculable amount. Core missing topics are deposit return and inspection. Itemized deductions, brokerage, and wear and tear are accepted extras. Clauses 7.2, 2.4, and 4.4 must stay unflagged."
+    },
+    {
+      "case_id": "sample_rental_03",
+      "filenames": ["sample_rental_03.pdf"],
+      "marker": "",
+      "source": "pytest fixtures in tests/test_sample_agreement.py",
+      "description": "Regression profile for deposit-context damage and false-missing filters. No party names. Metrics describe this fixture only.",
+      "expected_unusual_clauses": ["4.4"],
+      "expected_not_unusual": ["14.2"],
+      "expected_missing_clauses": ["STD-INSPECT-001", "STD-ITEMIZE-001"],
+      "expected_not_missing": ["STD-REFUND-001", "STD-EARLYTERM-001", "STD-REPAIR-001", "STD-ESCALATION-001", "STD-LATE-001"],
+      "accepted_extra_missing": ["STD-CLEAN-001", "STD-BROKER-001"],
+      "expected_ranking": [],
+      "expected_unknown_exposure": ["4.4"],
+      "expected_normal_clauses": ["14.2"],
+      "expected_top_exposure": null,
+      "notes": "Pet damage without deposit language is not unusual. A deposit deduction that excludes wear and tear must not use whole-deposit wording. Refund, early termination, repairs, escalation, and late payment are present and must not be reported missing."
     }
   ]
 }

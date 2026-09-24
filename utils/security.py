@@ -16,6 +16,8 @@ _INJECTION_PATTERNS = [
     re.compile(r"safe to sign", re.I),
     re.compile(r"you are now", re.I),
     re.compile(r"system prompt", re.I),
+    re.compile(r"system override", re.I),
+    re.compile(r"disregard the standard", re.I),
 ]
 
 _BANNED_OUTPUT = [
@@ -43,6 +45,7 @@ _BANNED_OUTPUT = [
     re.compile(r"tenant's right", re.I),
     re.compile(r"right to timely refund", re.I),
     re.compile(r"\bunfair\b", re.I),
+    re.compile(r"\bfairness\b", re.I),
 ]
 
 
@@ -81,7 +84,7 @@ def _excerpts_from_text(text: str) -> list[str]:
     excerpts: list[str] = []
     seen: set[str] = set()
     for start, end in merged:
-        excerpt = compact[start:end].strip()[:240]
+        excerpt = compact[start:end].strip()[:700]
         key = excerpt.lower()
         if excerpt and key not in seen:
             seen.add(key)

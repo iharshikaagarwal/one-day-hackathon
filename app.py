@@ -81,9 +81,17 @@ def analyze(filename: str, data: bytes) -> bool:
         started = time.perf_counter()
         with st.status(f":shimmer[Reviewing {filename}]", type="compact") as status:
 
-            def on_step(label: str) -> None:
-                with st.status(label, type="step", state="complete"):
-                    st.caption(STEP_NOTES.get(label, "Done."))
+            def on_step(label: str, phase: str = "complete") -> None:
+                note = STEP_NOTES.get(label, "Working…")
+                try:
+                    if phase == "running":
+                        with st.status(label, type="step", state="running"):
+                            st.caption(note)
+                        return
+                    with st.status(label, type="step", state="complete"):
+                        st.caption(note)
+                except Exception:
+                    return
 
             try:
                 result = run_analysis(data, filename, llm=client, model_name=model, on_step=on_step)

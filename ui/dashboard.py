@@ -42,10 +42,6 @@ def render_dashboard(result: AnalysisRun) -> None:
             "Agreement type detected, but a standard comparison library is not currently available "
             "for this type. ClauseLens does not make a signing decision."
         )
-    if result.warnings:
-        for warning in result.warnings:
-            st.warning(warning)
-
     overview, unusual, missing, financial, negotiation, evidence, evaluation = st.tabs(
         [
             "Overview",
@@ -81,6 +77,8 @@ def _review_date(result: AnalysisRun) -> str:
 
 
 def _overview(result: AnalysisRun) -> None:
+    if result.warnings:
+        st.caption(f"{len(result.warnings)} analysis notes are in Evaluation / Trace.")
     with st.container(horizontal=True):
         st.metric("Unusual clauses", result.unusual_count, border=True)
         st.metric("Missing clauses", result.missing_count, border=True)
@@ -272,8 +270,8 @@ def _evaluation(result: AnalysisRun) -> None:
     st.subheader("Evaluation dataset")
     if result.evaluation is None:
         st.caption(
-            "These metrics are computed when the filename matches a case in evaluation/expected_results.json "
-            "or the evaluation marker is in the PDF. They are not shown as general accuracy."
+            "Answer-key scores are computed in the test suite only. "
+            "They are not produced when a PDF is analyzed in the app."
         )
     else:
         stats = result.evaluation
@@ -281,6 +279,7 @@ def _evaluation(result: AnalysisRun) -> None:
         st.write(f"Clause detection recall: {_pct(stats.clause_detection_recall)}")
         st.write(f"Clause detection precision: {_pct(stats.clause_detection_precision)}")
         st.write(f"Missing-clause detection: {_pct(stats.missing_detection_recall)}")
+        st.write(f"Missing-clause precision: {_pct(stats.missing_detection_precision)}")
         st.write(f"False positive rate on normal clauses: {_pct(stats.normal_clause_false_positive_rate)}")
         agreement = "n/a" if stats.ranking_agreement is None else _pct(stats.ranking_agreement)
         st.write(f"Ranking agreement: {agreement} on this evaluation case.")
@@ -302,6 +301,11 @@ def _evaluation(result: AnalysisRun) -> None:
                 st.write("Normal clauses flagged: " + ", ".join(stats.false_positive_normal_clauses))
             if stats.missed_missing:
                 st.write("Missing topics not found: " + ", ".join(stats.missed_missing))
+
+    if result.warnings:
+        st.subheader("Analysis notes")
+        for warning in result.warnings:
+            st.caption(warning)
 
     with st.expander("Analysis trace"):
         st.write(f"Run ID: {result.run_id}")

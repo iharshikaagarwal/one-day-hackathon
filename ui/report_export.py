@@ -191,8 +191,8 @@ def _report_html(result: AnalysisRun) -> str:
             "<div class='info'>Agreement type detected, but a standard comparison library is "
             "not currently available for this type. ClauseLens does not make a signing decision.</div>"
         )
-    for warning in result.warnings:
-        parts.append(f"<div class='warn'>{_t(warning)}</div>")
+    if result.warnings:
+        parts.append(f"<p class='caption'>{len(result.warnings)} analysis notes are in Evaluation / Trace.</p>")
 
     parts.append(
         "<p class='caption'>Overview · Unusual Clauses · Missing Clauses · "
@@ -397,6 +397,10 @@ def _evaluation_html(result: AnalysisRun) -> str:
         f"<p>Missing-clause checks: {validation.missing_checks}</p>",
         f"<p>Prompt-injection checks: {_t(injection)}</p>",
     ]
+    if result.warnings:
+        parts.append("<h3>Analysis notes</h3>")
+        for warning in result.warnings:
+            parts.append(f"<p class='caption'>{_t(warning)}</p>")
     if validation.injection_note:
         parts.append(f"<p class='caption'>{_t(validation.injection_note)}</p>")
     if result.injection_excerpts:
@@ -411,9 +415,8 @@ def _evaluation_html(result: AnalysisRun) -> str:
     parts.append("<h3>Evaluation dataset</h3>")
     if result.evaluation is None:
         parts.append(
-            "<p class='caption'>These metrics are computed when the filename matches a case in "
-            "evaluation/expected_results.json or the evaluation marker is in the PDF. "
-            "They are not shown as general accuracy.</p>"
+            "<p class='caption'>Answer-key scores are computed in the test suite only. "
+            "They are not produced when a PDF is analyzed in the app.</p>"
         )
     else:
         stats = result.evaluation
@@ -422,6 +425,7 @@ def _evaluation_html(result: AnalysisRun) -> str:
             f"<p>Clause detection recall: {_pct(stats.clause_detection_recall)}</p>",
             f"<p>Clause detection precision: {_pct(stats.clause_detection_precision)}</p>",
             f"<p>Missing-clause detection: {_pct(stats.missing_detection_recall)}</p>",
+            f"<p>Missing-clause precision: {_pct(stats.missing_detection_precision)}</p>",
             f"<p>False positive rate on normal clauses: {_pct(stats.normal_clause_false_positive_rate)}</p>",
             f"<p>Ranking agreement: {'n/a' if stats.ranking_agreement is None else _pct(stats.ranking_agreement)} on this evaluation case.</p>",
             f"<p>Evidence validation rate: {_pct(stats.evidence_validation_rate)}</p>",
@@ -438,8 +442,6 @@ def _evaluation_html(result: AnalysisRun) -> str:
                 parts.append(f"<p>Normal clauses flagged: {_t(', '.join(stats.false_positive_normal_clauses))}</p>")
             if stats.missed_missing:
                 parts.append(f"<p>Missing topics not found: {_t(', '.join(stats.missed_missing))}</p>")
-        if stats.notes:
-            parts.append(f"<p class='caption'>{_t(stats.notes)}</p>")
 
     parts.append("<h3>Analysis trace</h3>")
     parts.append(f"<p>Run ID: {_t(result.run_id)}</p>")

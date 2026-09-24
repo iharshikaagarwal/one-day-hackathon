@@ -47,7 +47,7 @@ def fresh_openai_client():
 def _result():
     return run_analysis(
         build_pdf_bytes(),
-        "karthik_agreement.pdf",
+        "sample_rental_01.pdf",
         llm=FakeLLM(),
         library=load_library(),
         model_name="gpt-4.1-mini",
@@ -60,7 +60,7 @@ def test_dashboard_renders_evaluated_sample_inside_the_chat():
     app.session_state["results"] = {result.run_id: result.model_dump()}
     app.session_state["latest_run"] = result.run_id
     app.session_state["messages"] = [
-        {"role": "user", "kind": "file", "content": "karthik_agreement.pdf", "text": ""},
+        {"role": "user", "kind": "file", "content": "sample_rental_01.pdf", "text": ""},
         {"role": "assistant", "kind": "report", "content": "", "run_id": result.run_id},
     ]
     app.session_state["legal_marks"] = []
@@ -90,7 +90,7 @@ def test_downloadable_report_covers_every_dashboard_section():
 
     result = _result()
     name = report_filename(result)
-    assert name.startswith("ClauseLens-karthik_agreement-")
+    assert name.startswith("ClauseLens-sample_rental_01-")
     assert name.endswith(".pdf")
     pdf = build_report_pdf(result)
     assert pdf.startswith(b"%PDF")
@@ -110,7 +110,8 @@ def test_downloadable_report_covers_every_dashboard_section():
     assert "1,20,000" in report
     assert "STD-INSPECT-001" in report
     assert "STD-REFUND-001" in report
-    assert "Clause detection recall" in report
+    assert "Answer-key scores are computed in the test suite only" in report
+    assert "Clause detection recall" not in report
     assert "does not make a signing decision" in report
     assert "Detected in the document and not followed" in report
     assert document.page_count >= 2
@@ -146,7 +147,7 @@ def test_upload_question_is_kept_on_the_file_message():
         {
             "role": "user",
             "kind": "file",
-            "content": "harshika_rental_agreement.pdf",
+            "content": "sample_rental_02.pdf",
             "text": question,
         },
         {"role": "assistant", "kind": "report", "content": "", "run_id": result.run_id},

@@ -77,11 +77,7 @@ def infer_rule(text: str, category: str, terms: FinancialTermsConfig) -> LLMExpo
         )
 
     percent_values = percents(text)
-    if (
-        percent_values
-        and category in terms.percent_categories
-        and mentions_any(text, terms.base_amount_nouns)
-    ):
+    if percent_values and mentions_any(text, terms.base_amount_nouns):
         return LLMExposureRule(
             level="formula",
             formula="percent_of_base",
