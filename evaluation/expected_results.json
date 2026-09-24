@@ -1,0 +1,15 @@
+{
+  "case_id": "karthik_eleven_page",
+  "marker": "CLAUSELENS-EVAL-CASE-001",
+  "description": "Synthetic evaluation agreement. Metrics are results on this dataset only, not general real-world accuracy.",
+  "expected_unusual_clauses": ["7.1", "9.3", "4.2", "6.4"],
+  "expected_missing_clauses": ["STD-REFUND-001", "STD-INSPECT-001"],
+  "expected_ranking": ["7.1", "9.3", "4.2", "6.4"],
+  "expected_normal_clauses": ["2.1", "2.2", "3.1", "3.2", "5.1", "8.1", "8.2", "8.3", "8.4", "8.5", "8.6", "8.7", "9.8", "9.9", "9.10", "10.1", "11.1"],
+  "expected_top_exposure": {
+    "clause_number": "7.1",
+    "amount": 120000,
+    "currency": "INR"
+  },
+  "notes": "Expected ranking follows defensible exposure: entire deposit, then two months of rent, then the stated ₹2,000 charge, then the stated ₹1,500 charge. Alarming wording is not the ranking key."
+}
