@@ -1,0 +1,99 @@
+{
+  "name": "ClauseLens known failure patterns (rental)",
+  "agreement_type": "rental",
+  "version": "1.0.0",
+  "review_date": "2026-09-01",
+  "disclaimer": "These patterns are advisory comparison knowledge about clauses that commonly lead to tenant disputes or unexpected cost. They are not universal legal rules and they are not a statement of what a court would do.",
+  "patterns": [
+    {
+      "pattern_id": "PAT-UNDEFINED-DAMAGE",
+      "category": "damage",
+      "description": "Damage is a trigger for a deduction, but the agreement does not define it.",
+      "why_it_matters": "An undefined damage trigger can be read broadly enough to cover ordinary use, so the amount at stake is unclear until the word is defined.",
+      "related_standard_ids": ["STD-DAMAGE-001"],
+      "indicators": ["any damage"],
+      "suggested_review_action": "Ask for a definition of damage that excludes normal wear and tear, and ask a lawyer to review enforceability in the relevant jurisdiction."
+    },
+    {
+      "pattern_id": "PAT-NO-INSPECTION",
+      "category": "inspection",
+      "description": "The agreement does not set a joint inspection before deposit deductions.",
+      "why_it_matters": "Without an inspection step, the tenant has no agreed record of condition at move-out before money is withheld.",
+      "related_standard_ids": ["STD-INSPECT-001"],
+      "indicators": [],
+      "suggested_review_action": "Ask for a joint inspection and a signed note before any deduction."
+    },
+    {
+      "pattern_id": "PAT-NO-REFUND-TIMELINE",
+      "category": "deposit_refund",
+      "description": "The agreement does not say when the remaining deposit must be returned.",
+      "why_it_matters": "Without a return date, the tenant cannot point to an agreed deadline for the balance that remains after deductions.",
+      "related_standard_ids": ["STD-REFUND-001"],
+      "indicators": [],
+      "suggested_review_action": "Ask for a stated refund timeline after move-out and itemized deductions."
+    },
+    {
+      "pattern_id": "PAT-NON-ITEMIZED",
+      "category": "damage",
+      "description": "A deposit can be retained without an itemized list of deductions.",
+      "why_it_matters": "A single unitemized retention makes it hard to tell which rupees relate to which item of loss.",
+      "related_standard_ids": ["STD-DAMAGE-001", "STD-ITEMIZE-001"],
+      "indicators": ["entire security deposit", "entire deposit", "whole deposit"],
+      "suggested_review_action": "Ask for itemized deductions tied to an inspection note."
+    },
+    {
+      "pattern_id": "PAT-UNCLEAR-WEAR",
+      "category": "normal_wear",
+      "description": "A deduction clause does not distinguish ordinary wear from damage.",
+      "why_it_matters": "If the deduction clause never points to a wear-and-tear definition, ordinary use can be treated as a deductible event.",
+      "related_standard_ids": ["STD-DAMAGE-001"],
+      "indicators": ["any damage"],
+      "suggested_review_action": "Ask the damage clause to exclude normal wear and tear by reference to the definition in the agreement."
+    },
+    {
+      "pattern_id": "PAT-UNLIMITED-MAINTENANCE",
+      "category": "maintenance",
+      "description": "The tenant is given open-ended responsibility for repairs, including structural work.",
+      "why_it_matters": "Open-ended repair duties have no stated ceiling, so a defensible amount often cannot be calculated.",
+      "related_standard_ids": ["STD-MAINT-001"],
+      "indicators": ["all repairs including structural", "tenant shall bear structural", "any and all maintenance"],
+      "suggested_review_action": "Ask for a split between structural repairs and day-to-day upkeep, and mark the clause for legal review if the ceiling is still unclear."
+    },
+    {
+      "pattern_id": "PAT-VAGUE-PENALTY",
+      "category": "penalties",
+      "description": "A small or unclear charge is tied to severe default language.",
+      "why_it_matters": "Severe default language can raise consequences beyond the stated fee, even when the fee itself is small.",
+      "related_standard_ids": ["STD-MOVEIN-001", "STD-MOVEOUT-001", "STD-LATE-001"],
+      "indicators": ["material breach", "serious default", "sole peril"],
+      "suggested_review_action": "Ask for the charge to stay a stated fee, with a grace period where relevant, and without treating that fee alone as a serious default."
+    },
+    {
+      "pattern_id": "PAT-UNCLEAR-ESCALATION",
+      "category": "rent_escalation",
+      "description": "Rent can change without a stated percentage, amount, or date.",
+      "why_it_matters": "An open-ended increase has no defensible figure until the formula and the date are written down.",
+      "related_standard_ids": ["STD-ESCALATION-001"],
+      "indicators": ["at the owner's discretion", "as the owner decides", "increase the rent without"],
+      "suggested_review_action": "Ask for a fixed percentage or amount and the date it applies."
+    },
+    {
+      "pattern_id": "PAT-UNCLEAR-TERMINATION",
+      "category": "early_termination",
+      "description": "Ending the agreement early depends on a compensation formula that is broader than the comparison standard.",
+      "why_it_matters": "Early-exit compensation can equal multiple months of rent even when the clause sounds like a routine condition.",
+      "related_standard_ids": ["STD-EARLYTERM-001"],
+      "indicators": ["two months' rent", "two months rent", "three months' rent", "three months rent"],
+      "suggested_review_action": "Ask for a defined cap and for the notice clause to govern the exit. Consider legal review of the lock-in."
+    },
+    {
+      "pattern_id": "PAT-UNCLEAR-UTILITIES",
+      "category": "utilities",
+      "description": "The agreement does not say who pays which utility.",
+      "why_it_matters": "Unassigned utility charges can become a surprise invoice with no formula in the agreement.",
+      "related_standard_ids": ["STD-UTIL-001"],
+      "indicators": ["utilities as the owner decides", "all utilities without limit"],
+      "suggested_review_action": "Ask for a list of utilities and who pays each one."
+    }
+  ]
+}

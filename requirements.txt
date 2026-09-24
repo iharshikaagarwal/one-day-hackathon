@@ -1,0 +1,7 @@
+streamlit==1.64.0
+openai==3.19.2
+langgraph==1.2.12
+pydantic==2.13.5
+pymupdf==1.28.2
+python-dotenv==1.2.3
+pytest==9.1.1

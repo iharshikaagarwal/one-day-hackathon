@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "note": "Human-maintained phrase signals used to detect the agreement type. The type selects which standard library applies. It does not select a different analysis engine.",
+  "minimum_signals": 2,
+  "types": [
+    {
+      "agreement_type": "rental",
+      "label": "Rental Agreement",
+      "signals": ["tenant", "landlord", "licensor", "licensee", "leave and licence", "lease", "monthly rent", "security deposit", "premises", "lock-in", "subletting"]
+    },
+    {
+      "agreement_type": "employment",
+      "label": "Employment Agreement",
+      "signals": ["employee", "employer", "employment", "monthly salary", "probation", "designation", "non-compete", "payroll", "appointment"]
+    },
+    {
+      "agreement_type": "service",
+      "label": "Service Agreement",
+      "signals": ["service provider", "client", "scope of services", "statement of work", "deliverables", "service level", "monthly fee"]
+    },
+    {
+      "agreement_type": "vendor",
+      "label": "Vendor Agreement",
+      "signals": ["vendor", "supplier", "purchase order", "supply of goods", "delivery schedule", "goods", "invoice"]
+    }
+  ]
+}

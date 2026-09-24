@@ -1,0 +1,3 @@
+search-path = ["."]
+python-interpreter-path = ".venv/Scripts/python.exe"
+project-excludes = [".venv/**", "runs/**"]
