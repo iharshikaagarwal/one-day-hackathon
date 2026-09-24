@@ -1,0 +1,47 @@
+# Secrets: never commit API keys
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+*.pem
+*.key
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python build and cache files
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+
+# Test, lint, and type-checker caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyrefly/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Analysis runs contain quotes from uploaded documents
+runs/*
+!runs/.gitkeep
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Editors
+.vscode/
+.idea/
+
+# Operating system and OneDrive files
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
