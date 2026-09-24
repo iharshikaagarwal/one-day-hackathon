@@ -110,34 +110,32 @@ def ask(question: str) -> None:
         tracker = CostTracker(model=client.chat_model, run_id=f"{latest or 'general'}-chat")
         if latest is None:
             system, user = general_messages(question, history)
-            fallback, grounding = SAFE_FALLBACK_GENERAL, "No agreement analyzed yet"
+            fallback = SAFE_FALLBACK_GENERAL
         else:
             result = AnalysisRun.model_validate(st.session_state.results[latest])
             system, user = findings_messages(question, result, history)
-            fallback, grounding = SAFE_FALLBACK, "Grounded in validated findings only"
+            fallback = SAFE_FALLBACK
         placeholder = st.empty()
         placeholder.markdown(":gray[Thinking…]")
         reply = ""
         for reply in stream_reply(client, tracker, system, user, fallback):
             placeholder.markdown(reply + " ▌")
         placeholder.markdown(reply)
-        cost = tracker.summary_dict()
-        note = f"{grounding} · {client.chat_model} · Estimated API cost ${cost['estimated_cost_usd']:.5f}"
-        st.caption(note)
-        add("assistant", "text", reply, note=note)
+        add("assistant", "text", reply)
 
 
 with st.sidebar:
     st.markdown(f"### {BRAND_MARK} ClauseLens")
     st.caption("Understand your agreement before you sign.")
     st.button("New chat", icon=":material/add:", on_click=reset_chat, width="stretch")
-    st.caption(":material/dark_mode: Switch between light and dark mode from the ⋮ menu at the top right.")
     st.space("small")
     st.caption(
         "ClauseLens compares your agreement with a versioned comparison-standard library. "
         "It does not make a signing decision, and it is not legal advice."
     )
     st.caption("Uploaded documents are treated as untrusted data. Instructions inside them are never followed.")
+    st.divider()
+    st.caption(":material/dark_mode: Light / Dark theme in ⋮ menu")
 
 if not st.session_state.messages:
     greeting()

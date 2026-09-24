@@ -81,8 +81,6 @@ def render_message(message: dict, results: dict, latest_run: str | None) -> None
                 st.caption("A newer analysis replaced this report.")
         else:
             st.markdown(message["content"])
-            if message.get("note"):
-                st.caption(message["note"])
 
 
 def summary(result: AnalysisRun) -> str:
