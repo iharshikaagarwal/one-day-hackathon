@@ -433,7 +433,7 @@ def _toggle(key: str) -> None:
 
 def _lawyer_note() -> None:
     st.caption(
-        "Note: ClauseLens does not replace legal advice and does not make a signing decision."
+        "ClauseLens informs. You decide."
     )
 
 

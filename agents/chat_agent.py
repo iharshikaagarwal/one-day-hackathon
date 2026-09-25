@@ -31,12 +31,8 @@ SAFE_FALLBACK_GENERAL = (
 
 EMPTY_REPLY = "Sorry, I couldn't reply just now. Please try again."
 
-SIGNING_NOTE = (
-    "Note: ClauseLens does not make a signing decision. The report above has the clauses, gaps, and costs."
-)
-SIGNING_NOTE_GENERAL = (
-    "Note: ClauseLens does not make a signing decision. Attach an agreement to see the clauses, gaps, and costs."
-)
+SIGNING_NOTE = "ClauseLens informs. You decide."
+SIGNING_NOTE_GENERAL = "ClauseLens informs. You decide."
 _SIGNING_ASK = re.compile(
     r"\b(?:should i (?:singh|sign)|shall i sign|can i sign|do i sign|is it (?:safe|ok|okay) to sign)\b",
     re.I,

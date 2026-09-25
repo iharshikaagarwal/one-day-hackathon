@@ -474,7 +474,7 @@ def _evaluation_html(result: AnalysisRun) -> str:
 
 def _lawyer_html() -> str:
     return (
-        "<p class='caption'>Note: ClauseLens does not replace legal advice and does not make a signing decision.</p>"
+        "<p class='caption'>ClauseLens informs. You decide.</p>"
     )
 
 
