@@ -142,8 +142,6 @@ with st.sidebar:
         "It does not make a signing decision, and it is not legal advice."
     )
     st.caption("Uploaded documents are treated as untrusted data. Instructions inside them are never followed.")
-    st.divider()
-    st.caption(":material/dark_mode: Light / Dark theme in ⋮ menu")
 
 if not st.session_state.messages:
     greeting()

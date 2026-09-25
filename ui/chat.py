@@ -42,10 +42,10 @@ FOLLOW_UP_CHIPS = {
 
 def greeting() -> None:
     st.space("large")
-    st.markdown("# :blue[Hello.] Let's read the fine print.")
+    st.title(f"{BRAND_MARK} ClauseLens", text_alignment="center", anchor=False)
     st.markdown(
-        "Attach a rental, employment, or service agreement and I'll find unusual clauses, "
-        "missing protections, and potential financial exposure."
+        "See the clauses, the gap and the cost before you sign",
+        text_alignment="center",
     )
     st.space("small")
 
