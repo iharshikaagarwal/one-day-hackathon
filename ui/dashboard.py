@@ -432,14 +432,9 @@ def _toggle(key: str) -> None:
 
 
 def _lawyer_note() -> None:
-    with st.container(border=True):
-        st.markdown("**Where a lawyer belongs**")
-        st.write(
-            "ClauseLens does not replace legal advice. Ask a qualified lawyer to review high-value exposure, "
-            "ambiguous clauses, jurisdiction-specific enforceability, conflicting clauses, unusual termination "
-            "provisions, clauses that touch statutory rights, clauses whose cost cannot be calculated, and "
-            "disputes about what a sentence means. Use Mark for legal review to keep those items in view."
-        )
+    st.caption(
+        "Note: ClauseLens does not replace legal advice and does not make a signing decision."
+    )
 
 
 def _library_maintenance() -> None:

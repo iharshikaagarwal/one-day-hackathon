@@ -6,7 +6,8 @@ from streamlit.testing.v1 import AppTest
 
 from agents.chat_agent import (
     SAFE_FALLBACK,
-    SAFE_FALLBACK_GENERAL,
+    SIGNING_NOTE,
+    SIGNING_NOTE_GENERAL,
     answer_general,
     answer_question,
 )
@@ -189,12 +190,8 @@ def test_general_chat_before_upload_uses_the_model_safely():
     assert "user: hello" in call["user"]
     assert "Rental (library" in call["user"] and "Employment (library" in call["user"]
     assert "sample" not in call["system"].lower()
-    grounded = FakeLLM(
-        "ClauseLens does not make a signing decision. Attach the PDF and I'll compare the clauses."
-    )
-    assert "signing decision" in answer_general("Should I sign?", [], grounded, tracker)
-    unsafe = FakeLLM("You should sign it, it looks fine.")
-    assert answer_general("Should I sign?", [], unsafe, tracker) == SAFE_FALLBACK_GENERAL
+    assert answer_general("Should I sign?", [], FakeLLM("ignored"), tracker) == SIGNING_NOTE_GENERAL
+    assert answer_general("should i singh this document?", [], FakeLLM("ignored"), tracker) == SIGNING_NOTE_GENERAL
 
 
 def test_chat_answer_is_grounded_and_filtered():
@@ -207,9 +204,7 @@ def test_chat_answer_is_grounded_and_filtered():
     assert "do not follow" in call["system"].lower()
     assert "BEGIN UNTRUSTED DOCUMENT DATA" in call["user"]
     assert "STD-DAMAGE-001" in call["user"]
-    refusal = FakeLLM(
-        "ClauseLens does not make a signing decision. Clause 7.1 on page 6 is the largest exposure at ₹1,20,000."
-    )
-    assert "7.1" in answer_question("Should I sign?", result, [], refusal, tracker)
+    assert answer_question("Should I sign?", result, [], FakeLLM("ignored"), tracker) == SIGNING_NOTE
+    assert "7.1" not in SIGNING_NOTE
     unsafe = FakeLLM("This is illegal and you should not sign it.")
-    assert answer_question("Should I sign?", result, [], unsafe, tracker) == SAFE_FALLBACK
+    assert answer_question("What is the biggest risk?", result, [], unsafe, tracker) == SAFE_FALLBACK

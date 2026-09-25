@@ -474,11 +474,7 @@ def _evaluation_html(result: AnalysisRun) -> str:
 
 def _lawyer_html() -> str:
     return (
-        "<div class='note'><h3>Where a lawyer belongs</h3>"
-        "<p>ClauseLens does not replace legal advice. Ask a qualified lawyer to review high-value exposure, "
-        "ambiguous clauses, jurisdiction-specific enforceability, conflicting clauses, unusual termination "
-        "provisions, clauses that touch statutory rights, clauses whose cost cannot be calculated, and "
-        "disputes about what a sentence means. Use Mark for legal review to keep those items in view.</p></div>"
+        "<p class='caption'>Note: ClauseLens does not replace legal advice and does not make a signing decision.</p>"
     )
 
 

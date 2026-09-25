@@ -7,8 +7,11 @@ import streamlit as st
 from agents.chat_agent import (
     SAFE_FALLBACK,
     SAFE_FALLBACK_GENERAL,
+    SIGNING_NOTE,
+    SIGNING_NOTE_GENERAL,
     findings_messages,
     general_messages,
+    is_signing_question,
     stream_reply,
 )
 from graph.workflow import run_analysis
@@ -112,6 +115,11 @@ def ask(question: str) -> None:
     latest = st.session_state.latest_run
     history = st.session_state.messages[:-1]
     with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
+        if is_signing_question(question):
+            reply = SIGNING_NOTE if latest else SIGNING_NOTE_GENERAL
+            st.caption(reply)
+            add("assistant", "text", reply)
+            return
         client, _model = client_or_error()
         if client is None:
             return

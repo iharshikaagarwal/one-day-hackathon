@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Iterator
 from functools import lru_cache
 
@@ -29,6 +30,21 @@ SAFE_FALLBACK_GENERAL = (
 )
 
 EMPTY_REPLY = "Sorry, I couldn't reply just now. Please try again."
+
+SIGNING_NOTE = (
+    "Note: ClauseLens does not make a signing decision. The report above has the clauses, gaps, and costs."
+)
+SIGNING_NOTE_GENERAL = (
+    "Note: ClauseLens does not make a signing decision. Attach an agreement to see the clauses, gaps, and costs."
+)
+_SIGNING_ASK = re.compile(
+    r"\b(?:should i (?:singh|sign)|shall i sign|can i sign|do i sign|is it (?:safe|ok|okay) to sign)\b",
+    re.I,
+)
+
+
+def is_signing_question(text: str) -> bool:
+    return bool(_SIGNING_ASK.search(text or ""))
 
 
 def general_messages(question: str, history: list[dict]) -> tuple[str, str]:
@@ -82,11 +98,15 @@ def stream_reply(llm, tracker: CostTracker, system: str, user: str, fallback: st
 
 
 def answer_general(question: str, history: list[dict], llm, tracker: CostTracker) -> str:
+    if is_signing_question(question):
+        return SIGNING_NOTE_GENERAL
     system, user = general_messages(question, history)
     return _last(stream_reply(llm, tracker, system, user, SAFE_FALLBACK_GENERAL))
 
 
 def answer_question(question: str, result: AnalysisRun, history: list[dict], llm, tracker: CostTracker) -> str:
+    if is_signing_question(question):
+        return SIGNING_NOTE
     system, user = findings_messages(question, result, history)
     return _last(stream_reply(llm, tracker, system, user, SAFE_FALLBACK))
 
